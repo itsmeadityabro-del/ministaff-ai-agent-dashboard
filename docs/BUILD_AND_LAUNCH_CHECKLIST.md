@@ -162,3 +162,11 @@ Fill these fields in only after observing the actual deployment:
 - **Checklist refresh commit / CI:** this document records the fresh Supabase project, four applied migrations, and latest staging/CI evidence above. Authentication and tenant-isolation tests, Agent37 connectivity, server-only secret configuration, and production release remain open.
 - **Verified by / date:** _pending_
 
+
+
+## 11. DigitalPlat domain registration checkpoint (2026-10-16)
+- [x] Opened the authenticated DigitalPlat registration flow; confirmed the dashboard shows one free domain slot available.
+- [ ] Confirm this is the correct account the user is authorized to manage before accepting policies or registering. The displayed profile label did not match the known ChatGPT profile, so registration is paused.
+- [ ] Check live availability and rules for `ministaff.dpdns.org` or another permitted suffix. Current dashboard notice says .US.KG and .XX.KG registrations are temporarily paused for accounts below Power.
+- [ ] Read/acknowledge required policies only after account/ownership is confirmed; do not agree to unexpected charges or buy a slot/bundle.
+- [ ] Verify the exact domain appears in Domain List after registration. Until then, no domain is registered and no Cloudflare zone or DNS changes should be made.
