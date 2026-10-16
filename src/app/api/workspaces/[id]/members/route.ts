@@ -1,5 +1,5 @@
 import { requireAdmin, requireMember, requireUser } from "@/lib/auth";
-import { ApiError, handleError, json } from "@/lib/http";
+import { ApiError, handleError, json, readJson } from "@/lib/http";
 import type { Invitation, WorkspaceMember } from "@/lib/types";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -36,9 +36,15 @@ export async function POST(request: Request, { params }: Ctx) {
     const { db, user } = await requireUser();
     await requireAdmin(db, id, user.id);
 
+    const body = await readJson<{ role?: string }>(request, 4096);
+    const inviteRole = body.role ?? "member";
+    if (inviteRole !== "member" && inviteRole !== "admin") {
+      throw new ApiError(400, "invalid_request", "Invitation role must be member or admin");
+    }
+
     const { data, error } = await db
       .from("invitations")
-      .insert({ workspace_id: id, role: "admin", created_by: user.id })
+      .insert({ workspace_id: id, role: inviteRole, created_by: user.id })
       .select("token")
       .single();
     if (error) throw new ApiError(500, "db_error", error.message);
