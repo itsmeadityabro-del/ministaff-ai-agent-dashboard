@@ -39,8 +39,8 @@
 ## 2. Login, signup, email verification & recovery
 
 - [x] Configured Supabase Auth for the fresh project with signup enabled and email auto-confirm disabled, so email confirmation is required; set password minimum to 8 characters to match the app.
-- [x] Set the Supabase site URL to the staging Worker URL and the redirect allowlist to staging callback paths plus localhost development paths. Live callback behavior remains untested.
-- [ ] Configure and verify a trusted SMTP/email sender, confirmation template, password-reset template, and rate limits. SMTP is currently unconfigured, so email delivery is not yet verified.
+- [x] Set the Supabase site URL to `https://ministaff-ai-dashboard-staging.itsmeadityabro.workers.dev` and the redirect allowlist to staging callback paths plus localhost development paths. Live callback behavior remains untested.
+- [ ] Configure and verify a trusted SMTP/email sender; Supabase Auth email templates exist, but SMTP host, port, sender, and credentials are currently unconfigured. Test confirmation and password-reset email delivery.
 - [ ] Sign up with a new email; verify the expected check-your-email state and that an unverified user cannot access protected workspace data.
 - [ ] Open a valid confirmation link; verify the session is established and the user reaches the intended in-app destination.
 - [ ] Test expired, malformed, already-used, and cross-browser confirmation links; show a helpful failure message.
@@ -126,7 +126,7 @@
 ## 9. Automated verification & release gate
 
 - [x] Existing CI workflow runs dependency installation, TypeScript typecheck, and Next.js production build.
-- [x] Verified the latest source changes with standard CI [38884691642](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884691642) and the most recent successful Worker deploy/public-Supabase-binding/health run [38884117058](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884117058). The privileged secret-sync step was skipped because `SUPABASE_SECRET_KEY` is not yet configured.
+- [x] Verified latest ordinary CI on [run 38886945020](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38886945020) and the latest staging Worker build/deploy/public settings + server-only key sync + health check on [run 38887168927](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38887168927). All deployment steps passed.
 - [ ] Add automated tests for redirect safety, auth callback paths, webhook auth/idempotency, permission checks, quota enforcement, and queue retry transitions.
 - [ ] Run `npm ci`, `npm run typecheck`, `npm run build`, and non-billable smoke tests on the final candidate commit.
 - [ ] Run browser E2E against the preview deployment for signup → email confirmation → login → create workspace → create lead → enqueue/process job → appointment → usage.
@@ -140,11 +140,11 @@ Fill these fields in only after observing the actual deployment:
 
 - **Staging URL:** https://ministaff-ai-dashboard-staging.itsmeadityabro.workers.dev — live `/api/health` verified by [Worker run 38884117058](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884117058)
 - **Production URL:** _not identified_
-- **Deployment provider/project:** Cloudflare Workers; `ministaff-ai-dashboard-staging` is deployed and health-checked. Supabase URL/publishable key are synced to the Worker; the server-only `SUPABASE_SECRET_KEY` is still pending. Production hostname remains unidentified; this is not a production release.
+- **Deployment provider/project:** Cloudflare Workers; `ministaff-ai-dashboard-staging` is deployed and health-checked. Supabase public settings and server-only key are synced on [run 38887168927](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38887168927). Production hostname remains unidentified; this is not a production release.
 - **Cloudflare compatibility/build:** 100% compatibility scan. Worker build, staging publish, Supabase public-binding sync, and health check passed on [run 38884117058](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884117058); ordinary CI passed on [run 38884159683](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884159683).
-- **Supabase project ref/status:** `qgxjjvhzggepfurjtpyd` (`ministaff-ai`), ACTIVE_HEALTHY, region `ap-south-1`; migrations 0001–0004 applied and verified. Auth site URL/allowlist configured; SMTP is pending. `SUPABASE_SECRET_KEY` remains a manual repository-secret step.
+- **Supabase project ref/status:** `qgxjjvhzggepfurjtpyd` (`ministaff-ai`), ACTIVE_HEALTHY, region `ap-south-1`; migrations 0001–0004 applied and verified. Auth site URL/allowlist configured; the server-only key is synced to staging; SMTP is pending.
 - **Agent37 create/chat/delete smoke run:** _not run; requires server key and budget approval_
-- **Last verified full CI run:** [run 38884691642](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884691642) — success on head `062aedc243da96f7a094c82de09aa7b5ee8cb785`, including dependency installation, TypeScript typecheck, security regression tests, and Next.js build.
+- **Last verified full CI run:** [run 38886945020](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38886945020) — success on head `99abee47829c6cad64b5c73b32592662c619ce28`.
 - **Checklist refresh commit / CI:** this document records the fresh Supabase project, four applied migrations, and latest staging/CI evidence above. Authentication and tenant-isolation tests, Agent37 connectivity, server-only secret configuration, and production release remain open.
 - **Verified by / date:** _pending_
 
