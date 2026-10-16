@@ -5,3 +5,12 @@ export function hasVerifiedEmail(
 ): boolean {
   return Boolean(user?.email_confirmed_at);
 }
+
+// Keep role interpretation in one testable policy module. Unknown roles must never receive access.
+export function hasWorkspaceMembership(role: string | null | undefined): boolean {
+  return role === "admin" || role === "member";
+}
+
+export function hasWorkspaceAdminRole(role: string | null | undefined): boolean {
+  return role === "admin";
+}
