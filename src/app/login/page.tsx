@@ -9,6 +9,7 @@ import { branding } from "@/config/branding";
 import { MIN_PASSWORD } from "@/config/auth";
 import { publicSiteOrigin, safeNextPath } from "@/lib/site-url";
 import { toast } from "sonner";
+import { AuthMethods } from "@/components/auth/auth-methods";
 
 type Mode = "signin" | "signup" | "reset";
 
@@ -153,6 +154,13 @@ export default function LoginPage() {
             </button>
           </div>
         ) : (
+          <>
+          <AuthMethods />
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />
+            <span>OR EMAIL</span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -216,6 +224,7 @@ export default function LoginPage() {
               )}
             </div>
           </form>
+          </>
         )}
       </div>
     </main>
