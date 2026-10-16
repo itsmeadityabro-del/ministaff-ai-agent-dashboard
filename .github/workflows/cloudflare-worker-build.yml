@@ -16,9 +16,11 @@ on:
       - "tsconfig.json"
       - "postcss.config.*"
       - "tailwind.config.*"
+      - "cloudflare.config.ts"
+      - "vite.config.ts"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: ministaff-cloudflare-build-${{ github.ref }}
@@ -44,8 +46,35 @@ jobs:
       - name: Install repository dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Detect persisted Cloudflare configuration
+        id: config-state
+        shell: bash
+        run: |
+          if [ -f cloudflare.config.ts ] && [ -f vite.config.ts ] && grep -q 'vinext/server/fetch-handler' cloudflare.config.ts; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Generate Cloudflare/vinext configuration
+        if: steps.config-state.outputs.configured != 'true'
         run: npx --yes vinext@1.2.1 init --platform=cloudflare --skip-check
+
+      - name: Set dedicated staging Worker name
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from "node:fs";
+          const path = "cloudflare.config.ts";
+          const source = readFileSync(path, "utf8");
+          if (!source.includes('entrypoint: "vinext/server/fetch-handler"')) {
+            throw new Error("Unexpected Cloudflare config format; refusing to rewrite it.");
+          }
+          const updated = source.replace(/name:\s*["'][^"']+["']/, 'name: "ministaff-ai-dashboard-staging"');
+          if (!updated.includes('name: "ministaff-ai-dashboard-staging"')) {
+            throw new Error("Could not set the staging Worker name.");
+          }
+          writeFileSync(path, updated);
+          NODE
 
       - name: Build the application for Cloudflare
         run: npm run build:vinext
@@ -67,3 +96,32 @@ jobs:
             wrangler.jsonc
             package.json
             package-lock.json
+
+      - name: Deploy dedicated staging Worker
+        if: success() && steps.config-state.outputs.configured == 'true' && env.HAS_CF_TOKEN == 'true'
+        env:
+          HAS_CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: "1dc3a9e8f35be58924fb55dc5f7d0298"
+        run: npm run deploy:vinext -- --skip-build
+
+      - name: Explain skipped staging deployment
+        if: success() && steps.config-state.outputs.configured == 'true' && env.HAS_CF_TOKEN != 'true'
+        env:
+          HAS_CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+        run: |
+          echo "## Staging deployment skipped" >> "$GITHUB_STEP_SUMMARY"
+          echo "Build and dry-run passed, but the repository secret CLOUDFLARE_API_TOKEN is not configured. No Worker was published." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Persist validated Cloudflare config and lockfile
+        if: success() && steps.config-state.outputs.configured != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json vite.config.ts cloudflare.config.ts
+          if git diff --cached --quiet; then
+            echo "No generated configuration changes to commit."
+          else
+            git commit -m "build: add validated Cloudflare Worker configuration"
+            git push origin HEAD:build/ministaff-from-scratch
+          fi
