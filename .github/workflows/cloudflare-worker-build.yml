@@ -51,7 +51,7 @@ jobs:
         run: npm run build:vinext
 
       - name: Validate Cloudflare deployment output without publishing
-        run: npx --yes @vinext/cloudflare@1.2.1 deploy --skip-build --dry-run
+        run: npm run deploy:vinext -- --skip-build --dry-run
 
       - name: Upload generated build output for diagnosis
         if: always()
