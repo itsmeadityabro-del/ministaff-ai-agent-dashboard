@@ -59,14 +59,19 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 - Provider-reported usage display, but no authoritative monthly quota enforcement yet.
 - Production dependency audit previously reported no production dependencies with critical/high vulnerabilities; 7 high findings remain in development/build tooling and should be remediated with compatibility retesting.
 
+## Domain decision for MiniStaff email setup
+- User asked to obtain a domain from https://github.com/DigitalPlatDev/FreeDomain for MiniStaff SMTP. The project's official README lists suffixes `.dpdns.org`, `.us.kg`, `.qzz.io`, `.xx.kg`, and `.qd.je` and links to the registration dashboard at https://dash.domain.digitalplat.org/ (README: https://github.com/DigitalPlatDev/FreeDomain/blob/main/README.md).
+- Preferred candidate to check first: `ministaff.dpdns.org`; this is only a proposed name, not confirmed available or registered.
+- DigitalPlat's own registration guide says to read the dashboard's current notices/policies and confirm current suffix support, availability, nameservers, slots, and any price before submitting; prepare an external DNS zone first. Cloudflare can be the intended external DNS provider, but do not create a zone or submit registration until the dashboard availability/policy result confirms the exact chosen name and no unexpected charge.
+- The dashboard fetch returned 403 in the available read-only web route, and no authenticated DigitalPlat session is available in this workspace. Registration has not occurred. Next user-side step: open the official dashboard and sign in; then share the live Register-page details/name availability and the assigned DNS-provider nameservers, without sharing password or authentication codes. Never use DigitalPlat's compromised former Telegram channels; the repository warns against them.
+
 ## Current auth workstream
 - Current active workstream: email delivery and authentication. Supabase Auth service was rechecked on 2026-10-16 and is ACTIVE_HEALTHY; email/password signup is enabled, email auto-confirm is disabled, the staging site URL and redirect allowlist are configured, and password minimum is 8. SMTP host/port/username/password/sender are still unset. Next dependency: user must choose a sender domain they control (or use limited internal-only default-SMTP testing) before configuring delivery; never request credentials in chat.
 
 ## Immediate next action
-1. Configure trusted SMTP/email sending in Supabase Auth and verify confirmation/reset email delivery.
-2. Run live signup, verification, callback, sign-in/out, password-recovery, workspace creation, permissions, and tenant-isolation tests.
-3. Verify the dashboard live against the staging Worker. The deploy/health check passed, but these user-flow tests have not run.
-3. Configure a trusted SMTP/email sender in Supabase Auth and verify delivery.
-4. Run live signup, email-verification, callback, login/logout, password-recovery, workspace-creation, authorization, and workspace-isolation tests.
+1. Complete DigitalPlat dashboard availability/policy check for proposed `ministaff.dpdns.org`; do not claim registration until confirmed in Domain List.
+2. Prepare a DNS zone at the connected Cloudflare account and use the exact assigned nameservers during registration/delegation, after confirming the suffix's current rules and any displayed charge.
+3. Configure trusted SMTP/email sending after domain/DNS ownership and required email DNS records are verified.
+4. Run live signup, email verification, callback, sign-in/out, password-recovery, workspace creation, permissions, and tenant-isolation tests.
 5. Then configure Agent37 as a server-side secret, check wallet/billing status, and test only a budget-approved test instance.
 6. Continue updating this file and docs/BUILD_AND_LAUNCH_CHECKLIST.md at every substantive project turn.
