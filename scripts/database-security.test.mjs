@@ -6,6 +6,7 @@ const migration = readFileSync(
   new URL("../supabase/migrations/0005_rpc_privilege_hardening.sql", import.meta.url),
   "utf8",
 );
+const normalizedMigration = migration.replace(/\s+/g, " ").toLowerCase();
 
 const serviceOnlyFunctions = [
   "public.is_workspace_member(uuid)",
@@ -18,32 +19,22 @@ const serviceOnlyFunctions = [
   "public.claim_lead_jobs(integer)",
 ];
 
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 test("security-definer functions are explicitly revoked from browser roles", () => {
   for (const signature of serviceOnlyFunctions) {
-    const escaped = escapeRegExp(signature);
-    assert.match(
-      migration,
-      new RegExp(
-        `REVOKE ALL PRIVILEGES ON FUNCTION ${escaped}\\s+FROM PUBLIC, anon, authenticated;`,
-        "i",
+    assert.ok(
+      normalizedMigration.includes(
+        `revoke all privileges on function ${signature.toLowerCase()} from public, anon, authenticated;`,
       ),
       `missing browser-role revoke for ${signature}`,
     );
   }
 });
 
-test("server-side RPCs needed by the BFF and queue worker remain granted to service_role", () => {
+test("server-side RPCs remain granted to service_role", () => {
   for (const signature of serviceOnlyFunctions) {
-    const escaped = escapeRegExp(signature);
-    assert.match(
-      migration,
-      new RegExp(
-        `GRANT EXECUTE ON FUNCTION ${escaped}\\s+TO service_role;`,
-        "i",
+    assert.ok(
+      normalizedMigration.includes(
+        `grant execute on function ${signature.toLowerCase()} to service_role;`,
       ),
       `missing service_role grant for ${signature}`,
     );
@@ -52,7 +43,7 @@ test("server-side RPCs needed by the BFF and queue worker remain granted to serv
 
 test("the migration does not re-grant EXECUTE to PUBLIC, anon, or authenticated", () => {
   assert.doesNotMatch(
-    migration,
-    /GRANT\s+EXECUTE\s+ON\s+FUNCTION[\s\S]*?\sTO\s+(?:PUBLIC|anon|authenticated)\s*;/i,
+    normalizedMigration,
+    /grant\s+execute\s+on\s+function[\s\S]*?\s+to\s+(?:public|anon|authenticated)\s*;/i,
   );
 });
