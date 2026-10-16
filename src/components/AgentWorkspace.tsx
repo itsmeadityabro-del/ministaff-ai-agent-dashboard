@@ -195,7 +195,7 @@ export function AgentWorkspace({
               On other tabs a spacer keeps the account footer pinned to the bottom. */}
           {isChat ? (
             <div className="flex min-h-0 flex-1 flex-col border-t">
-              <ChatSidebar />
+              <ChatSidebar canManage={role === "admin"} />
             </div>
           ) : (
             <div className="flex-1" />
@@ -212,13 +212,13 @@ export function AgentWorkspace({
           {/* Chat owns its full height and stays MOUNTED (just hidden) across tab switches. */}
           {chatOpened && (
             <div className={cn("h-full", !isChat && "hidden")}>
-              <ChatView />
+              <ChatView canChat={role === "admin"} />
             </div>
           )}
           {/* Files mirrors Chat: full-height, kept MOUNTED so the current directory survives. */}
           {filesOpened && (
             <div className={cn("h-full", !isFiles && "hidden")}>
-              <FilesTab agentId={agentId} />
+              <FilesTab agentId={agentId} canWrite={role === "admin"} />
             </div>
           )}
           {/* Integrations + Settings mount lazily in the padded scroll area. */}
