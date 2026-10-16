@@ -34,6 +34,7 @@ jobs:
     env:
       HAS_CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
       HAS_SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY != '' || secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}
+      HAS_AGENT37_API_KEY: ${{ secrets.AGENT37_API_KEY != '' }}
     steps:
       - name: Check out rebuild branch
         uses: actions/checkout@v4
@@ -185,6 +186,27 @@ jobs:
         run: |
           echo "## Supabase server secret key pending" >> "$GITHUB_STEP_SUMMARY"
           echo "The public Supabase runtime configuration is present, but neither SUPABASE_SECRET_KEY nor the legacy SUPABASE_SERVICE_ROLE_KEY is configured as a repository secret. Server-side data operations remain unconfigured." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Configure server-only Agent37 API key
+        if: success() && steps.config-state.outputs.configured == 'true' && env.HAS_CF_TOKEN == 'true' && env.HAS_AGENT37_API_KEY == 'true'
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: "1dc3a9e8f35be58924fb55dc5f7d0298"
+          AGENT37_API_KEY: ${{ secrets.AGENT37_API_KEY }}
+        run: |
+          if [ -z "$AGENT37_API_KEY" ]; then
+            echo "Agent37 key was unexpectedly empty."
+            exit 1
+          fi
+          printf '%s' "$AGENT37_API_KEY" | npx --yes wrangler@4 secret put AGENT37_API_KEY --name ministaff-ai-dashboard-staging
+          echo "Agent37 API key was synced to the staging Worker as a server-only secret."
+
+      - name: Report missing Agent37 server key
+        if: success() && steps.config-state.outputs.configured == 'true' && env.HAS_CF_TOKEN == 'true' && env.HAS_AGENT37_API_KEY != 'true'
+        run: |
+          echo "## Agent37 key pending" >> "$GITHUB_STEP_SUMMARY"
+          echo "AGENT37_API_KEY is not configured as a GitHub Actions repository secret. Agent routes cannot call Agent37 until it is added and synced to the staging Worker." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify staging health endpoint
         if: success() && steps.config-state.outputs.configured == 'true' && env.HAS_CF_TOKEN == 'true'
