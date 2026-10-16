@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: 30
     env:
       HAS_CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
-      HAS_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}
+      HAS_SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY != '' || secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}
     steps:
       - name: Check out rebuild branch
         uses: actions/checkout@v4
@@ -116,6 +116,7 @@ jobs:
       - name: Build the application for Cloudflare
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: npm run build:vinext
 
@@ -153,30 +154,37 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: "1dc3a9e8f35be58924fb55dc5f7d0298"
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: |
-          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || [ -z "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; then
+          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || { [ -z "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" ] && [ -z "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; }; then
             echo "Supabase public configuration secrets are missing."
             exit 1
           fi
           printf '%s' "$NEXT_PUBLIC_SUPABASE_URL" | npx --yes wrangler@4 secret put NEXT_PUBLIC_SUPABASE_URL --name ministaff-ai-dashboard-staging
-          printf '%s' "$NEXT_PUBLIC_SUPABASE_ANON_KEY" | npx --yes wrangler@4 secret put NEXT_PUBLIC_SUPABASE_ANON_KEY --name ministaff-ai-dashboard-staging
+          if [ -n "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" ]; then
+            printf '%s' "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" | npx --yes wrangler@4 secret put NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY --name ministaff-ai-dashboard-staging
+          else
+            printf '%s' "$NEXT_PUBLIC_SUPABASE_ANON_KEY" | npx --yes wrangler@4 secret put NEXT_PUBLIC_SUPABASE_ANON_KEY --name ministaff-ai-dashboard-staging
+          fi
 
-      - name: Configure server-only Supabase service key
-        if: success() && steps.config-state.outputs.configured == 'true' && env.HAS_CF_TOKEN == 'true' && env.HAS_SUPABASE_SERVICE_ROLE_KEY == 'true'
+      - name: Configure server-only Supabase secret key
+        if: success() && steps.config-state.outputs.configured == 'true' && env.HAS_CF_TOKEN == 'true' && env.HAS_SUPABASE_SECRET_KEY == 'true'
         shell: bash
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: "1dc3a9e8f35be58924fb55dc5f7d0298"
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          printf '%s' "$SUPABASE_SERVICE_ROLE_KEY" | npx --yes wrangler@4 secret put SUPABASE_SERVICE_ROLE_KEY --name ministaff-ai-dashboard-staging
+          key="${SUPABASE_SECRET_KEY:-$SUPABASE_SERVICE_ROLE_KEY}"
+          printf '%s' "$key" | npx --yes wrangler@4 secret put SUPABASE_SECRET_KEY --name ministaff-ai-dashboard-staging
 
       - name: Report missing server-only Supabase key
-        if: success() && steps.config-state.outputs.configured == 'true' && env.HAS_CF_TOKEN == 'true' && env.HAS_SUPABASE_SERVICE_ROLE_KEY != 'true'
+        if: success() && steps.config-state.outputs.configured == 'true' && env.HAS_CF_TOKEN == 'true' && env.HAS_SUPABASE_SECRET_KEY != 'true'
         run: |
-          echo "## Supabase service key pending" >> "$GITHUB_STEP_SUMMARY"
-          echo "Public Supabase URL/anon-key bindings were configured, but SUPABASE_SERVICE_ROLE_KEY is not yet present as a repository secret. Server-side data operations remain unconfigured." >> "$GITHUB_STEP_SUMMARY"
+          echo "## Supabase server secret key pending" >> "$GITHUB_STEP_SUMMARY"
+          echo "The public Supabase runtime configuration is present, but neither SUPABASE_SECRET_KEY nor the legacy SUPABASE_SERVICE_ROLE_KEY is configured as a repository secret. Server-side data operations remain unconfigured." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify staging health endpoint
         if: success() && steps.config-state.outputs.configured == 'true' && env.HAS_CF_TOKEN == 'true'
