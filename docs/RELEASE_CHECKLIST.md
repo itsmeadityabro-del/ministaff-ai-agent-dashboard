@@ -4,8 +4,8 @@ This file tracks packaging and staging promotion only. Detailed product/workflow
 
 - [x] GitHub Actions passed `npm ci`, `npm test`, `npm run typecheck`, and `npm run build` on commit `158b2965caf24b3b7f39f319d143370fee51619b`. [Workflow run](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38935121292).
 - [ ] Confirm `SUPABASE_SECRET_KEY` or `SUPABASE_SERVICE_ROLE_KEY` exists only as a server-side binding; never expose it to browser code.
-- [ ] Apply and verify Supabase migrations 0002 and 0003 on staging.
-- [ ] Confirm activation Worker links paid customers to `ministaff_accounts`; configure its portal Supabase URL/service-role secret separately from the dashboard Worker.
+- [ ] Apply and verify Supabase migrations 0002, 0003, and 0004 on staging; 0004 revokes browser access to MiniStaff tables and security-definer RPCs.
+- [ ] Confirm activation Worker links paid customers to `ministaff_accounts`; configure its portal Supabase URL/service-role secret separately from the dashboard Worker. Customer APIs must not create/delete workspaces or agents, invite extra users, resize compute, or exceed the tier's managed-spend cap.
 - [ ] Deploy this exact verified commit to Cloudflare staging and record deployment ID.
 - [ ] Browser-test signup/confirmation, account bootstrap, lead CRUD, appointment CRUD/conflict rejection, agent chat and usage reporting.
 - [ ] Check responsive layout, loading/error/empty states, browser console and server logs.
