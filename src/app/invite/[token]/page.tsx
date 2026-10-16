@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
+import { hasVerifiedEmail } from "@/lib/auth-policy";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AcceptInvite } from "@/components/AcceptInvite";
 import { branding } from "@/config/branding";
@@ -9,7 +10,11 @@ type Ctx = { params: Promise<{ token: string }> };
 export default async function InvitePage({ params }: Ctx) {
   const { token } = await params;
   const { user } = await getSession();
-  if (!user) redirect(`/login?next=${encodeURIComponent(`/invite/${token}`)}`);
+  const invitePath = `/invite/${token}`;
+  if (!user) redirect(`/login?next=${encodeURIComponent(invitePath)}`);
+  if (!hasVerifiedEmail(user)) {
+    redirect(`/login?error=unverified&next=${encodeURIComponent(invitePath)}`);
+  }
 
   // get_invitation is gated by the token (a secret), not by membership, so a not-yet-member can
   // read what they were invited to. Runs through the privileged client.
