@@ -44,7 +44,7 @@ test("managed workspace cannot be deleted or expanded into extra workspaces", as
   const workspaceItem = await read("../src/app/api/workspaces/[id]/route.ts");
   const workspaceCollection = await read("../src/app/api/workspaces/route.ts");
   assert.match(workspaceItem, /managed_workspace_protected/);
-  assert.doesNotMatch(workspaceItem, /agent37\\.deleteAgent\\s*\\(/);
+  assert.doesNotMatch(workspaceItem, /agent37\.deleteAgent\s*\(/);
   assert.match(workspaceCollection, /requireMiniStaffAccount/);
   assert.match(workspaceCollection, /additional_workspaces_disabled/);
 });
@@ -52,8 +52,8 @@ test("managed workspace cannot be deleted or expanded into extra workspaces", as
 test("agent data is scoped to the linked MiniStaff account, not a caller-selected workspace", async () => {
   const source = await read("../src/app/api/agents/route.ts");
   assert.match(source, /requireMiniStaffAccount/);
-  assert.match(source, /workspaceId !== account\\.workspace_id/);
-  assert.match(source, /eq\\("agent37_id", account\\.agent37_id\\)/);
+  assert.match(source, /workspaceId !== account\.workspace_id/);
+  assert.match(source, /eq\("agent37_id", account\.agent37_id\\)/);
   assert.match(source, /additional_agents_disabled/);
 });
 
