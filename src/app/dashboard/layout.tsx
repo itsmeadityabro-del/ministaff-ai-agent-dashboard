@@ -40,22 +40,17 @@ async function loadWorkspaces(db: DB, userId: string): Promise<WorkspaceWithRole
 // hence the on-conflict no-op) so bootstrap depends on neither the trigger having fired nor a
 // schema-cache-sensitive re-read of it.
 async function createFirstWorkspace(db: DB, userId: string): Promise<WorkspaceWithRole> {
-  const { data: ws, error: wsErr } = await db
-    .from("workspaces")
-    .insert({ name: "My Workspace", owner_id: userId })
-    .select("*")
-    .single();
-  if (wsErr || !ws) {
-    throw new Error(`Couldn't create your first workspace: ${wsErr?.message ?? "no row returned"}`);
+  // The DB function locks bootstrap by verified user ID, reuses a workspace created by a
+  // concurrent request, and guarantees there is no duplicate "My Workspace" from first-login races.
+  const { data, error } = await db.rpc("ensure_default_workspace", { p_user: userId });
+  if (error) {
+    throw new Error(`Couldn't ensure your first workspace: ${error.message}`);
   }
-  const { error: memErr } = await db
-    .from("memberships")
-    .upsert(
-      { workspace_id: ws.id, user_id: userId, role: "admin" },
-      { onConflict: "workspace_id,user_id" }
-    );
-  if (memErr) throw new Error(`Couldn't add you to your first workspace: ${memErr.message}`);
-  return { ...(ws as Workspace), role: "admin" as Role };
+  const ws = (Array.isArray(data) ? data[0] : data) as Workspace | null;
+  if (!ws?.id) {
+    throw new Error("Couldn't ensure your first workspace: no workspace row returned");
+  }
+  return { ...ws, role: "admin" as Role };
 }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
