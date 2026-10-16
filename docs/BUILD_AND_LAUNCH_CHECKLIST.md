@@ -229,3 +229,15 @@ Fill these fields in only after observing the actual deployment:
 - [x] Staging health and unauthenticated API JSON 401/no-store smoke checks passed after deployment. No Agent37 agent was created and no agent runtime test was performed.
 - [ ] Review Agent37 wallet/billing and set an explicit maximum test-spend limit before creating/waking an agent.
 - [ ] Remaining live gates: SMTP/email verification, authenticated CRUD, two-account tenant isolation, lead/appointment end-to-end, authoritative quota/cost enforcement, and production/rollback review.
+
+
+## 17. Agent37 wallet, billing, and spend gate — 2026-10-16
+- [x] Rechecked branch head: `adb75323980bd0b23a3c35f908be5d1594e896b1` (`docs: refresh checklist completion tally`) before this documentation update.
+- [x] Rechecked staging workflow job details [38922457975](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38922457975): deployment, Agent37 secret sync, read-only key verification, health, and JSON 401/no-store smoke tests passed; no agent was created.
+- [x] Rechecked CI job details [38900824132](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38900824132): type-check, security regression tests, and production build passed. The connected GitHub tool cannot list the newest workflow runs, so do not claim these IDs are necessarily the latest.
+- [x] Reviewed [Agent37 Billing](https://www.agent37.com/docs/agents-api/billing) and [managed services/budgets](https://www.agent37.com/docs/agents-api/budgets): wallet balances, top-ups, auto-top-up settings, and the billing ledger are dashboard-only; `GET /v1/usage` is available for historical workspace usage, but there is no `/v1` wallet-balance endpoint.
+- [x] Captured public rates only (not account-specific): $0.80/vCPU-month, $0.70/GB RAM-month, $0.09/GB disk-month; a continuously running default 2 vCPU / 4 GB / 4 GB disk instance is listed at $4.76/month; retained 4 GB disk while stopped/sleeping is about $0.36/month. Managed LLM usage is pass-through; Brave Search $0.005/call; Composio $0.000114/call.
+- [ ] Obtain a readable, redacted screenshot of **Cloud → Billing** showing current balance/credit, recent usage or ledger, and whether auto-top-up is enabled plus its threshold and refill amount. Redact email, payment/card details, and identifying workspace information.
+- [ ] Obtain a readable, redacted screenshot of **Cloud → Instances** showing all existing instance statuses and resource sizes; hide instance IDs if preferred.
+- [ ] Confirm auto-top-up is disabled before the test, then obtain explicit maximum total test-spend approval and confirmation of parent/legal guardian supervision and consent before creating, starting, or chatting with a test agent.
+- [ ] No live Agent37 account wallet balance/ledger, current instance inventory, or auto-top-up setting has been independently verified. No agent has been created or started. Do not proceed to the lifecycle smoke test until the items above are complete.
