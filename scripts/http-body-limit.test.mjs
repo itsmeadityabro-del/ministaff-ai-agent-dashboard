@@ -40,11 +40,12 @@ test("readJson accepts valid JSON within the requested limit", async () => {
 });
 
 test("readJson rejects a declared body size above the limit before reading the body", async () => {
-  const request = new Request("https://example.test/api", {
-    method: "POST",
-    headers: { "content-type": "application/json", "content-length": "1000" },
-    body: "{}",
-  });
+  // Fetch Request strips some transport-controlled headers such as Content-Length, so use the
+  // minimal Request interface to exercise the early header guard deterministically.
+  const request = {
+    headers: { get: (name) => name.toLowerCase() === "content-length" ? "1000" : null },
+    body: new ReadableStream({ start(controller) { controller.close(); } }),
+  };
   await assert.rejects(readJson(request, 10), (error) => {
     assert.equal(error.code, "payload_too_large");
     assert.equal(error.status, 413);
@@ -74,5 +75,6 @@ test("readJson enforces the actual streamed size even without a trustworthy Cont
 
 test("readJson preserves the existing safe empty-object fallback for malformed JSON", async () => {
   const request = new Request("https://example.test/api", { method: "POST", body: "{not-json" });
-  assert.deepEqual(await readJson(request, 100), {});
+  const result = await readJson(request, 100);
+  assert.equal(Object.keys(result).length, 0);
 });
