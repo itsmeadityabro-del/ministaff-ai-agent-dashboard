@@ -14,8 +14,8 @@
 - [x] Deployment decision corrected: do not use Vercel Hobby for commercial MiniStaff. Use Cloudflare for this app instead.
 - [x] Located Cloudflare Pages project `ministaff-ai.pages.dev`; its current `dist` configuration is static output and is not evidence that the Next.js server routes run there.
 - [x] Ran Cloudflare's official vinext compatibility scanner in the isolated cloud checkout: 100% reported compatibility (14 supported, 0 partial, 0 issues). This scan is not a runtime build or deployment pass.
-- [x] Completed a vinext/Cloudflare Workers production build on GitHub Actions with Node 22 (run [38869870018](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38869870018), commit `aea852e44a06cd18657e62aaf519c05dc6a93138`; build output artifact [12032254917](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38869870018/artifacts/12032254917)). The first follow-on dry-run check failed because the workflow requested a nonexistent `@vinext/cloudflare@1.2.1`; the package resolved by vinext init is `@vinext/cloudflare` 1.1.0. Corrected to the project-local `deploy:vinext` script; no deployment occurred.
-- [ ] Create/deploy only a separate staging Worker (planned name `ministaff-ai-dashboard-staging`); leave existing Pages project `ministaff-ai` and Worker `ministaff-forms` untouched.
+- [x] Verified a full vinext/Cloudflare Worker production build and dry-run deploy validation on GitHub Actions with Node 22 (run [38870516031](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38870516031), commit `b78b6c3f588efa1c83267184e610df65be873ae3`; artifact [12033311914](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38870516031/artifacts/12033311914)). The generated vinext configuration and dependency lockfile are committed on the rebuild branch. This verifies build output and dry-run only; no live Worker deployment was performed.
+- [ ] Deploy and health-check only the dedicated staging Worker `ministaff-ai-dashboard-staging`; the guarded CI deploy step currently reports the GitHub repository secret `CLOUDFLARE_API_TOKEN` is absent, so no Worker was published. Preserve the existing Pages project `ministaff-ai` and Worker `ministaff-forms`.
 - [ ] Choose an active Supabase environment. The connected account returned two projects with status `INACTIVE`; neither has been modified.
 - [ ] Restore/select the correct Supabase project and verify schema/migration state before applying migrations.
 - [ ] Add `AGENT37_API_KEY` as a **server-side secret** and verify Agent37 wallet status. The key must never be pasted into chat, committed to Git, or exposed in client code.
@@ -108,8 +108,8 @@
 
 ## 8. Deployment and runtime operations
 
-- [ ] Host the full-stack app on Cloudflare Workers using vinext after the Worker build passes CI; keep the existing static Pages project separate.
-- [ ] Connect the GitHub repository to a dedicated Cloudflare Workers staging target (or use a verified CI deployment path).
+- [ ] Publish the full-stack app to Cloudflare Workers using the verified vinext build and confirm the live `/api/health` response; keep existing static Pages project separate.
+- [x] Added a dedicated Cloudflare Worker build/dry-run workflow and guarded staging publish + health-check steps on `build/ministaff-from-scratch`; publishing remains blocked until the repository secret `CLOUDFLARE_API_TOKEN` is configured.
 - [ ] Configure Node 22 build/runtime assumptions, environment variables, cache behavior, and Worker request/runtime limits.
 - [ ] Add all required values as platform secrets: Supabase URL/public key/service role, Agent37 key, cron/worker token, site URL, and any enabled provider keys.
 - [ ] Ensure secret names/values are not committed, printed in logs, or included in client-prefixed variables unless explicitly public.
@@ -138,11 +138,11 @@ Fill these fields in only after observing the actual deployment:
 
 - **Preview URL:** _not verified_
 - **Production URL:** _not identified_
-- **Deployment provider/project:** _Cloudflare Workers selected; dedicated staging Worker not deployed yet_
-- **Cloudflare compatibility scan:** _100% report; production Worker build still unverified_
+- **Deployment provider/project:** Cloudflare Workers selected; source config targets `ministaff-ai-dashboard-staging`. Not deployed because `CLOUDFLARE_API_TOKEN` is not set as a GitHub repository secret.
+- **Cloudflare compatibility/build:** 100% compatibility scan; Node 22 production Worker build and deploy dry-run passed on [run 38870516031](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38870516031). Live deploy and health response remain unverified.
 - **Supabase project ref/status:** _not selected; discovered projects were inactive_
 - **Agent37 create/chat/delete smoke run:** _not run; requires server key and budget approval_
-- **Last verified CI run:** [run 38864758983](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38864758983) — success for commit `a931f71fcc23cb0ba14079c12966971c02f66ee6` before this checklist refresh.
-- **Checklist refresh commit / CI:** pending until the doc-only change is validated.
+- **Last verified full CI run:** [run 38870516555](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38870516555) — success on commit `b78b6c3f588efa1c83267184e610df65be873ae3`, including dependency install, typecheck, security regression tests and Next.js build.
+- **Checklist refresh commit / CI:** this checklist update will trigger standard CI on its resulting commit; workflow status to be recorded when available.
 - **Verified by / date:** _pending_
 
