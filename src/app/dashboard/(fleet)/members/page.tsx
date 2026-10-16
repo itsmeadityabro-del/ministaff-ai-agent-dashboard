@@ -1,5 +1,5 @@
-import { MembersView } from "@/components/MembersView";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return <MembersView />;
+  redirect("/dashboard");
 }
