@@ -53,7 +53,7 @@ test("agent data is scoped to the linked MiniStaff account, not a caller-selecte
   const source = await read("../src/app/api/agents/route.ts");
   assert.match(source, /requireMiniStaffAccount/);
   assert.match(source, /workspaceId !== account\.workspace_id/);
-  assert.match(source, /eq\("agent37_id", account\.agent37_id\\)/);
+  assert.match(source, /eq\("agent37_id", account\.agent37_id\)/);
   assert.match(source, /additional_agents_disabled/);
 });
 
