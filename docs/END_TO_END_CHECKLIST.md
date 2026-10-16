@@ -4,13 +4,13 @@ Last reviewed: 2026-10-16 (Asia/Kolkata). This is the canonical dashboard/workfl
 
 **Status definitions:** `PASS` = executed successfully with evidence; `CODED` = implementation exists but runtime is unproven; `BLOCKED` = requires credentials, external setup, or approved live test; `TODO` = not implemented or not verified.
 
-## Verified evidence at branch preparation
+## Verified evidence on the GitHub branch
 
-- [x] Prior local test evidence: dashboard TypeScript and Next.js production build passed before the latest portal branch work (local checkout is not proof of this GitHub branch).
-- [x] Eight non-billable unit/contract tests were run in the local working copy; rerun from this branch's CI before calling them passed remotely.
-- [x] Source/Cloudflare metadata reviewed on 2026-10-16.
-- [ ] GitHub Actions CI pass on this exact branch/commit.
-- [ ] Cloudflare staging build matches the reviewed GitHub commit.
+- [x] GitHub Actions CI passed on commit 2a7a7f1c3c9d41b1c74c38cbb7acdbf959cd477e on 2026-10-16: npm ci, npm test, npm run typecheck, and npm run build. [Workflow run](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38932462090).
+- [x] Non-billable Node unit/contract tests passed in the same CI run.
+- [x] Source and Cloudflare metadata reviewed on 2026-10-16.
+- [ ] Cloudflare staging build matches the reviewed GitHub commit; no deployment has been verified from this branch.
+- [ ] Supabase staging migrations and customer end-to-end tests.
 
 ## Dashboard and configuration
 
@@ -49,11 +49,11 @@ Last reviewed: 2026-10-16 (Asia/Kolkata). This is the canonical dashboard/workfl
 - [ ] **TODO — Usage accuracy:** compare dashboard spend/token counts with Agent37's reported values for the same period.
 - [ ] **TODO — Plan enforcement:** verify provider-side managed-spend caps and plan entitlement. A dashboard meter alone does not enforce spending limits.
 - [ ] **TODO — BYOK accounting:** confirm external subscription/API use is not falsely represented as Agent37 managed spend.
-- [ ] **BLOCKED — Gumroad flow:** Plus/Pro/Max checkout, valid/invalid/refunded/cancelled license, activation, idempotency, provisioning and cancellation with an approved test purchase.
+- [ ] **BLOCKED — Gumroad flow:** Plus/Pro/Max checkout, valid/invalid/refunded/cancelled license, activation, idempotency, provisioning and cancellation with an approved test purchase. Worker-specific steps are tracked in the [website/Worker release checklist](https://github.com/itsmeadityabro-del/ministaff-ai-website/blob/codex/ministaff-e2e-checklists/docs/WORKER_RELEASE_CHECKLIST.md).
 
 ## Release gate
 
-- [ ] Run `npm ci`, `npm test`, `npm run typecheck`, and `npm run build` in GitHub Actions on the exact branch commit.
+- [x] GitHub Actions passed `npm ci`, `npm test`, `npm run typecheck`, and `npm run build` on commit `2a7a7f1c3c9d41b1c74c38cbb7acdbf959cd477e`. [Workflow run](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38932462090).
 - [ ] Browser-test desktop/mobile layout, authentication, nav, loading/empty/error states.
 - [ ] Apply both migrations to staging using an approved deployment path and verify migration records.
 - [ ] Link Gumroad/activation Worker to the portal account table; requires portal Supabase URL and server-only key binding on the forms Worker.
