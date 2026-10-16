@@ -80,6 +80,7 @@ test("customers cannot raise managed usage allowance or resize into unpriced com
   const resize = await read("../src/app/api/agents/[id]/resize/route.ts");
   const settings = await read("../src/components/AgentSettingsTab.tsx");
   assert.match(budget, /PLAN_MONTHLY_CAPS_USD/);
+  assert.match(budget, /plus: 0, pro: 10, max: 25/);
   assert.match(budget, /plan_budget_limit/);
   assert.match(budget, /monthly_cap_usd > planCap/);
   assert.match(resize, /managed_agent_resize_disabled/);
