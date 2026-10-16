@@ -25,7 +25,7 @@
 - [x] Added bounded JSON body parsing (1 MiB default, 16 KiB public lead webhook cap), with regression tests for declared and streamed oversized payloads.
 - [x] Audited the 8 SECURITY DEFINER database functions. Applied migration 0005 to revoke EXECUTE from PUBLIC/anon/authenticated and retain service_role access; live SQL verified 0 browser-role executable functions out of 8 and zero direct table grants for anon/authenticated. Added a database privilege regression test to CI.
 - [x] Configured GitHub Actions secret `SUPABASE_SECRET_KEY` under the exact name expected by the workflow and verified the server-only key sync step passed on [Worker run 38887168927](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38887168927). A mistakenly named `SUPABASE` secret may remain but is unused. Live authentication/data-path tests remain open.
-- [ ] User has the Agent37 API key but must add it as GitHub Actions repository secret `AGENT37_API_KEY` under Settings → Secrets and variables → Actions. The staging Worker workflow now syncs it conditionally as a server-only Worker secret. After adding it, manually rerun the `MiniStaff Cloudflare Worker build` workflow; adding a repository secret alone does not trigger a workflow. Never paste the raw key into chat, commit it to Git, or expose it in client code. Then verify Agent37 wallet status before any billable smoke test.
+- [x] User added `AGENT37_API_KEY` as a GitHub Actions repository secret. Staging Worker run [38922457975](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38922457975) synced it as a server-only Worker secret and passed the read-only `GET /v1/instances` credential check. No agent was created; verify wallet/billing and approve a maximum test spend before any billable smoke test.
 - [ ] Configure public site URL, auth redirect allow-list, email provider/templates, and verified sender for the selected environment.
 
 ## 1. Product and website
@@ -88,7 +88,7 @@
 
 ## 4. Agent fleet and Agent37 runtime
 
-- [ ] Add the server-side Agent37 key only after the target deployment exists; confirm server routes can reach the API.
+- [x] Sync the server-side Agent37 key to the deployed staging Worker and confirm provider access through the read-only `GET /v1/instances` endpoint; verified by [Worker run 38922457975](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38922457975).
 - [ ] Verify create, list, detail, start/wake, stop/sleep, restart, update, resize, and delete flows against a **test** instance.
 - [ ] Confirm billing/wallet handling, per-agent budgets, and clear 402/error messages before provisioning anything that spends real credits.
 - [ ] Test the actual lifecycle/first-response latency over repeated runs and record p50/p95 rather than promising a wake-time target.
@@ -134,7 +134,7 @@
 - [x] Deploy the MiniStaff app to the dedicated Cloudflare staging Worker and verify its live `/api/health` response. This confirms staging runtime reachability only; production release, Supabase/Auth, and Agent37 integrations remain unverified.
 - [x] Added a dedicated Cloudflare Worker build/dry-run workflow and guarded staging publish + health-check steps on `build/ministaff-from-scratch`. The repository secret `CLOUDFLARE_API_TOKEN` is configured, and the staging publish plus health check passed in [Worker run 38881986997](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38881986997).
 - [ ] Configure Node 22 build/runtime assumptions, environment variables, cache behavior, and Worker request/runtime limits.
-- [x] Added the server-only Supabase secret API key as GitHub Actions secret `SUPABASE_SECRET_KEY`; the Worker workflow synced it successfully on run 38887168927. [ ] Add `AGENT37_API_KEY` as a server-side secret after auth/data checks and budget awareness; configure the cron secret only when queue tests are ready.
+- [x] Added the server-only Supabase secret API key as GitHub Actions secret `SUPABASE_SECRET_KEY`; the Worker workflow synced it successfully on run 38887168927. [x] Added and verified `AGENT37_API_KEY` as a server-side secret in [run 38922457975](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38922457975). Configure the cron secret only when queue tests are ready.
 - [ ] Ensure secret names/values are not committed, printed in logs, or included in client-prefixed variables unless explicitly public.
 - [x] Apply reviewed, versioned database migrations to the dedicated Supabase staging project; verified all four migration records and table/RLS inventory. Live auth and data-path smoke tests are still required before serving traffic.
 - [ ] Deploy to a preview URL; verify health response, login, callback links, data writes, Agent37 connectivity, error monitoring, and rollback path.
@@ -164,7 +164,7 @@ Fill these fields in only after observing the actual deployment:
 - **Deployment provider/project:** Cloudflare Workers; `ministaff-ai-dashboard-staging` is deployed and health-checked. Supabase public settings and server-only key are synced on [run 38887168927](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38887168927). Production hostname remains unidentified; this is not a production release.
 - **Cloudflare compatibility/build:** 100% compatibility scan. Worker build, staging publish, Supabase public-binding sync, and health check passed on [run 38884117058](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884117058); ordinary CI passed on [run 38884159683](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884159683).
 - **Supabase project ref/status:** `qgxjjvhzggepfurjtpyd` (`ministaff-ai`), ACTIVE_HEALTHY, region `ap-south-1`; migrations 0001–0004 applied and verified. Auth site URL/allowlist configured; the server-only key is synced to staging; SMTP is pending.
-- **Agent37 create/chat/delete smoke run:** _not run; requires server key and budget approval_
+- **Agent37 create/chat/delete smoke run:** _not run; server key and read-only connectivity are verified, but wallet/billing review and explicit maximum test-spend approval are still required_
 - **Last verified full CI run:** [run 38892741258](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38892741258) — success on current branch head `be5beae1363ed9c55598e432ee9eae004870d975`.
 - **Checklist refresh commit / CI:** this document records the fresh Supabase project, four applied migrations, and latest staging/CI evidence above. Authentication and tenant-isolation tests, Agent37 connectivity, server-only secret configuration, and production release remain open.
 - **Verified by / date:** _pending_
@@ -198,18 +198,18 @@ Fill these fields in only after observing the actual deployment:
 - **Estimated launch readiness: about 35%.** Checklist tally after this update is 61 of 147 boxes complete (about 41%); this is a task tally, not a customer-readiness score, since live auth, billing, and tenant acceptance tests remain.
 - Domain purchase is deferred. Use the `workers.dev` staging URL; do not treat `ministaff.dpdns.org` as registered or live.
 - Latest verified CI [38899346815](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38899346815) passed type-check, security tests, and production build. Latest staging Worker deployment [38899346883](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38899346883) passed the health check and live unauthenticated API JSON 401/no-store smoke test.
-- Next steps: user adds the Agent37 key to GitHub secrets and reruns the Worker workflow; then budget-approved Agent37 smoke, auth/email, two-account isolation, live invite and lead/appointment tests, server-side quota/cost controls, UI/accessibility, operational readiness, and eventual domain/production setup.
+- Next steps: review Agent37 wallet/billing and agree an explicit test-spend limit before any billable smoke test; then complete auth/email, two-account isolation, live invite and lead/appointment tests, server-side quota/cost controls, UI/accessibility, operational readiness, and eventual domain/production setup.
 
 ## 14. Agent37 API key handoff and recent hardening (2026-10-16)
 - [x] Added a dedicated staging Worker workflow step to sync the repository secret `AGENT37_API_KEY` with `wrangler secret put`, without printing its value, and verify it by a read-only `GET /v1/instances` request.
-- [ ] User says the key is now available, but still must add it under GitHub repository Settings → Secrets and variables → Actions as `AGENT37_API_KEY`, then manually rerun the [MiniStaff Cloudflare Worker build workflow](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/workflows/cloudflare-worker-build.yml).
+- [x] User added `AGENT37_API_KEY` under GitHub repository Settings → Secrets and variables → Actions and the Worker workflow was manually rerun. [Run 38922457975](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38922457975) passed secret sync and read-only credential validation.
 - [x] Applied migration `0005_rpc_privilege_hardening` (version `20261016114852`) and verified protected SECURITY DEFINER RPCs cannot be executed by browser roles.
 - [x] Applied migration `0006_idempotent_workspace_bootstrap` (version `20261016120115`), verified the service-role-only bootstrap RPC, and prevented first-login concurrency races from creating duplicate workspaces.
 - [x] Applied migration `0007_least_privilege_workspace_members` (version `20261016121701`); `admin`/`member` role constraints and service-only invitation acceptance verified live.
 - [x] Bounded JSON bodies (1 MiB overall, 16 KiB lead webhook), added no-store JSON APIs and baseline response security headers, redacted database/provider error details, and added billable-smoke approval gates.
 - [x] Workspace invitations now default to least-privilege `member`; admins can explicitly choose `admin`; acceptance preserves existing roles and consumes the invite token once.
 - [x] Current CI [38899346815](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38899346815) passed type-check, security regression tests, and production build for commit `51d7087aba2ea65bb573f54e7dcbcadef2de3f55`.
-- [x] Current staging Worker build/deploy [38899346883](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38899346883) passed deployment, `/api/health`, and unauthenticated `/api/leads` JSON 401/no-store smoke test. Agent37 secret sync/credential check skipped because `AGENT37_API_KEY` is not yet present in GitHub secrets.
+- [x] Current staging Worker build/deploy [38922457975](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38922457975) passed deployment, server-only Agent37 secret sync/read-only credential check, `/api/health`, and unauthenticated `/api/leads` JSON 401/no-store smoke test. No agent was provisioned.
 
 ## 15. Latest verification checkpoint — 2026-10-16
 - [x] Seven migrations are applied to the dedicated Supabase project through `0007_least_privilege_workspace_members` version `20261016121701`.
@@ -218,5 +218,14 @@ Fill these fields in only after observing the actual deployment:
 - [x] API auth middleware regression fixed: unauthenticated API calls now reach JSON auth guards instead of being redirected to HTML login. Live staging smoke verified HTTP 401, JSON error code `unauthorized`, and `Cache-Control: no-store`.
 - [x] CI [38899346815](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38899346815) and staging deployment/smoke [38899346883](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38899346883) succeeded on commit `51d7087aba2ea65bb573f54e7dcbcadef2de3f55`.
 - [x] Agent37 billable smoke script requires `--budget-approved`; `--keep` also needs `--keep-approved`. CI never provisions an agent.
-- [ ] Remaining immediate user step: add `AGENT37_API_KEY` to GitHub Actions secrets and rerun the Worker build workflow. Do not send the raw key in chat.
-- [ ] After the read-only credential check passes, agree an allowed test spend before provisioning an Agent37 test instance. SMTP/domain, live authenticated CRUD and email tests, two-account isolation, quota enforcement, production and rollback gates remain.
+- [x] Immediate credential step completed: user added `AGENT37_API_KEY` to GitHub Actions secrets and Worker run [38922457975](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38922457975) passed server-only secret sync and read-only validation. Do not send the raw key in chat.
+- [ ] Before provisioning an Agent37 test instance, review provider wallet/billing and agree an explicit maximum test spend. SMTP/domain, live authenticated CRUD and email tests, two-account isolation, quota enforcement, production and rollback gates remain.
+
+
+## 16. Agent37 credential verification checkpoint — 2026-10-16
+- [x] User added `AGENT37_API_KEY` to GitHub Actions repository secrets; the secret remains out of chat and source control.
+- [x] Manually dispatched Worker workflow [run 38922457975](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38922457975) on `build/ministaff-from-scratch`; conclusion: success on commit `791c067d6c9daba386204720ddf2dd2bea9e0312`.
+- [x] Synced Agent37 key to the dedicated staging Worker as a server-only secret; read-only `GET /v1/instances` credential validation passed.
+- [x] Staging health and unauthenticated API JSON 401/no-store smoke checks passed after deployment. No Agent37 agent was created and no agent runtime test was performed.
+- [ ] Review Agent37 wallet/billing and set an explicit maximum test-spend limit before creating/waking an agent.
+- [ ] Remaining live gates: SMTP/email verification, authenticated CRUD, two-account tenant isolation, lead/appointment end-to-end, authoritative quota/cost enforcement, and production/rollback review.
