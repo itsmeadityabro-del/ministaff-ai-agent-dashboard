@@ -1,15 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowDownToLine, Pencil, Play, RotateCw, Search, Sparkles, Square, Trash2, Wrench, type LucideIcon } from "lucide-react";
+import { ArrowDownToLine, Pencil, Play, RotateCw, Search, Sparkles, Square, Wrench, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
 import { isTransitional, statusVariant, usd } from "@/lib/format";
 import { AGENT_TYPES, SHAPE_PRESETS } from "@/config/agents";
 import type { Budget, MergedAgent, Role, Usage } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { OpenPortButtons } from "@/components/OpenPortButtons";
 import { useAsyncAction } from "@/components/useAsyncAction";
 import { cn } from "@/lib/utils";
@@ -28,11 +26,9 @@ export function AgentSettingsTab({
   role: Role;
   onChanged?: () => void;
 }) {
-  const router = useRouter();
   const isAdmin = role === "admin";
   const running = agent.live_status === "running";
   const transitional = isTransitional(agent.live_status);
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const { busy, run } = useAsyncAction();
 
   // POST a lifecycle action; the merged list refreshes via onChanged.
@@ -43,11 +39,7 @@ export function AgentSettingsTab({
       onChanged?.();
     });
 
-  async function deleteAgent() {
-    await apiFetch(`/api/agents/${agentId}`, { method: "DELETE" });
-    toast.success("Agent deleted");
-    router.push("/dashboard");
-  }
+
 
   return (
     <div className="space-y-6">
@@ -71,13 +63,6 @@ export function AgentSettingsTab({
                   onClick={() => action("update", "Updating")}
                 />
               )}
-              <IconAction
-                label="Delete agent"
-                icon={Trash2}
-                destructive
-                disabled={busy}
-                onClick={() => setConfirmDelete(true)}
-              />
             </div>
           )}
         </div>
@@ -102,15 +87,7 @@ export function AgentSettingsTab({
       <AppsSection agentId={agentId} agent={agent} />
       <BudgetSection agentId={agentId} />
 
-      <ConfirmDialog
-        open={confirmDelete}
-        onOpenChange={setConfirmDelete}
-        title="Delete agent?"
-        description={`This will permanently delete ${agent.name?.trim() || "this agent"}. This cannot be undone.`}
-        confirmText="Delete agent"
-        destructive
-        onConfirm={deleteAgent}
-      />
+
     </div>
   );
 }
