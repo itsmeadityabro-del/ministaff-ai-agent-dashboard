@@ -25,6 +25,14 @@
 
 ## 1. Product and website
 
+## Domain registration for MiniStaff SMTP
+
+- [ ] User requested a domain from DigitalPlat FreeDomain. The official README lists `.dpdns.org`, `.us.kg`, `.qzz.io`, `.xx.kg`, and `.qd.je`; official registration dashboard: https://dash.domain.digitalplat.org/.
+- [ ] Proposed first name to check: `ministaff.dpdns.org` (availability and registration are not confirmed).
+- [ ] Open the authenticated DigitalPlat dashboard; read current notices/policies and verify exact name, suffix support, nameserver requirements, slots and any displayed price before final registration. The read-only web fetch returned 403 and no authenticated DigitalPlat session is available here; no domain has been registered yet.
+- [ ] Prepare an external DNS zone with Cloudflare only after confirming the proposed name and current registration requirements; enter the exact nameservers provided by Cloudflare. DigitalPlat's guide says normal DNS records are managed at the external authoritative DNS provider.
+- [ ] After domain registration/delegation, configure and verify email-related DNS records with the selected SMTP provider; then test Supabase confirmation and password-reset messages.
+
 ## Active auth follow-up
 
 - [ ] SMTP setup is now the active workstream. Supabase Auth is healthy, signup is enabled, email confirmation remains required, staging URL/redirects and 8-character minimum are configured; SMTP host/port/credentials/sender are blank. Choose a controlled sender domain or use the default SMTP only for restricted internal testing before attempting real signup emails.
