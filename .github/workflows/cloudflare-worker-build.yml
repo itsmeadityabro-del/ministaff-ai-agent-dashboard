@@ -36,10 +36,11 @@ jobs:
       HAS_SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY != '' || secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}
       HAS_AGENT37_API_KEY: ${{ secrets.AGENT37_API_KEY != '' }}
     steps:
-      - name: Check out rebuild branch
+      - name: Check out triggering commit
         uses: actions/checkout@v4
         with:
-          ref: build/ministaff-from-scratch
+          # Build exactly the commit that triggered this run, not a moving branch head.
+          ref: ${{ github.sha }}
 
       - name: Set up Node.js 22
         uses: actions/setup-node@v4
@@ -286,6 +287,38 @@ jobs:
           '
           echo "## Staging deployed and health-checked" >> "$GITHUB_STEP_SUMMARY"
           echo "Health endpoint: $url" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify unauthenticated APIs return JSON 401
+        if: success() && steps.config-state.outputs.configured == 'true' && env.HAS_CF_TOKEN == 'true'
+        shell: bash
+        run: |
+          url="https://ministaff-ai-dashboard-staging.itsmeadityabro.workers.dev/api/leads"
+          response_file="$(mktemp)"
+          headers_file="$(mktemp)"
+          status_code="$(curl --silent --show-error --max-time 15 --dump-header "$headers_file" --output "$response_file" --write-out '%{http_code}' "$url" 2>/dev/null || true)"
+          if [ "$status_code" != "401" ]; then
+            echo "Unauthenticated API probe expected HTTP 401 but received HTTP ${status_code:-no-status}; response body intentionally suppressed."
+            exit 1
+          fi
+          if ! grep -qi '^content-type: application/json' "$headers_file"; then
+            echo "Unauthenticated API probe did not return an application/json content type."
+            exit 1
+          fi
+          if ! grep -qi '^cache-control: no-store' "$headers_file"; then
+            echo "Unauthenticated API response was missing Cache-Control: no-store."
+            exit 1
+          fi
+          node --input-type=module - "$response_file" <<'NODE'
+          import { readFileSync } from "node:fs";
+          const payload = JSON.parse(readFileSync(process.argv[2], "utf8"));
+          if (payload?.error?.code !== "unauthorized") {
+            console.error("Unauthenticated API returned an unexpected structured error; response body suppressed.");
+            process.exit(1);
+          }
+          console.log("Staging API authentication gate verified: unauthenticated lead request returned JSON 401/no-store.");
+          NODE
+          echo "## Staging API authentication smoke check passed" >> "$GITHUB_STEP_SUMMARY"
+          echo "Unauthenticated GET /api/leads returns JSON 401 with Cache-Control: no-store." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Explain skipped staging deployment
         if: success() && steps.config-state.outputs.configured == 'true' && env.HAS_CF_TOKEN != 'true'
