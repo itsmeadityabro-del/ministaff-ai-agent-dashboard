@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { checkProductionAuditReport } from "./production-audit-guard.mjs";
 
 const source = readFileSync(new URL("../src/lib/site-url.ts", import.meta.url), "utf8");
 const compiled = ts.transpileModule(source, {
@@ -98,4 +99,44 @@ test("usage periods reject malformed, impossible, and future months", () => {
   const future = resolveUsageMonth("2026-11", now);
   assert.equal(future.ok, false);
   assert.equal(future.code, "future_month");
+});
+
+
+test("production audit guard passes for a clean report", () => {
+  const result = checkProductionAuditReport({
+    metadata: { vulnerabilities: { critical: 0, high: 0, moderate: 0, low: 0 } },
+  });
+  assert.equal(result.ok, true);
+  assert.match(result.summary, /Critical: 0/);
+  assert.match(result.summary, /High: 0/);
+});
+
+test("production audit guard fails closed for missing or malformed reports", () => {
+  for (const report of [
+    null,
+    {},
+    { metadata: {} },
+    { metadata: { vulnerabilities: { critical: 0, high: 0, moderate: 0 } } },
+    { metadata: { vulnerabilities: { critical: 0, high: "0", moderate: 0, low: 0 } } },
+    { metadata: { vulnerabilities: { critical: -1, high: 0, moderate: 0, low: 0 } } },
+  ]) {
+    const result = checkProductionAuditReport(report);
+    assert.equal(result.ok, false);
+    assert.match(result.error, /valid vulnerability summary/);
+  }
+});
+
+test("production audit guard blocks critical/high findings but permits moderate/low findings", () => {
+  for (const level of ["critical", "high"]) {
+    const result = checkProductionAuditReport({
+      metadata: { vulnerabilities: { critical: 0, high: 0, moderate: 0, low: 0, [level]: 1 } },
+    });
+    assert.equal(result.ok, false);
+    assert.match(result.error, /critical or high/);
+  }
+
+  const moderateOnly = checkProductionAuditReport({
+    metadata: { vulnerabilities: { critical: 0, high: 0, moderate: 2, low: 1 } },
+  });
+  assert.equal(moderateOnly.ok, true);
 });

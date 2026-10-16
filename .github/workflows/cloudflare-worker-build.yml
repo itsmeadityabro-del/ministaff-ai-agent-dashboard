@@ -56,24 +56,7 @@ jobs:
         run: |
           npm audit --json > "$RUNNER_TEMP/npm-audit-report.json" || true
           cp "$RUNNER_TEMP/npm-audit-report.json" npm-audit-report.json
-          node --input-type=module <<'NODE'
-          import { appendFileSync, readFileSync } from "node:fs";
-          let report = {};
-          try { report = JSON.parse(readFileSync("npm-audit-report.json", "utf8")); } catch {}
-          const v = report.metadata?.vulnerabilities ?? {};
-          const summary = [
-            "## Dependency audit (informational; not a deployment gate)",
-            "",
-            `- Critical: ${v.critical ?? "unknown"}`,
-            `- High: ${v.high ?? "unknown"}`,
-            `- Moderate: ${v.moderate ?? "unknown"}`,
-            `- Low: ${v.low ?? "unknown"}`,
-            "",
-            "Full npm audit JSON is attached to this workflow's build artifact."
-          ].join("\n");
-          console.log(summary);
-          appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + "\n");
-          NODE
+          node scripts/production-audit-guard.mjs npm-audit-production-report.json
 
       - name: Audit production dependencies separately
         shell: bash
