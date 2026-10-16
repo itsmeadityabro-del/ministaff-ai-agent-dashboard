@@ -15,7 +15,7 @@ import { useChatAttachments } from "./useChatAttachments";
 // scrolling transcript with the composer docked at the bottom. The composer is kept at a STABLE
 // position in the tree across both states so it never remounts (preserving the draft, model, and
 // effort selection through the first send).
-export function ChatView() {
+export function ChatView({ canChat }: { canChat: boolean }) {
   const {
     agentId,
     agents,
@@ -79,22 +79,24 @@ export function ChatView() {
   }, [agents, agentId]);
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col" {...att.dragHandlers}>
-      {att.dragOver && <DropOverlay label="Drop files to attach" />}
+    <div className="relative flex h-full min-h-0 flex-col" {...(canChat ? att.dragHandlers : {})}>
+      {canChat && att.dragOver && <DropOverlay label="Drop files to attach" />}
       <header className="flex h-16 shrink-0 items-center justify-between border-b bg-background px-6 md:px-10">
         <div className="min-w-0">
           <h1 className="truncate text-base font-semibold text-foreground">{headerTitle}</h1>
           <p className="truncate text-xs text-muted-foreground">{agentName}</p>
         </div>
-        <button
-          type="button"
-          onClick={startNewChat}
-          aria-label="New chat"
-          title="New chat"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-        >
-          <Plus className="h-4 w-4" />
-        </button>
+        {canChat && (
+          <button
+            type="button"
+            onClick={startNewChat}
+            aria-label="New chat"
+            title="New chat"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        )}
       </header>
       {/* Top: scrolling transcript when there are messages; the centered welcome heading when
           empty (justify-end seats it just above the composer). */}
@@ -129,15 +131,21 @@ export function ChatView() {
         <div className={cn("mx-auto w-full", showWelcome ? "max-w-2xl" : "max-w-3xl")} aria-live="polite">
           {error && <p className="mb-2 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>}
         </div>
-        <ChatComposer
-          agentId={agentId}
-          isStreaming={isStreaming}
-          att={att}
-          onSend={send}
-          onStop={stop}
-          large={showWelcome}
-          focusToken={composerFocusToken}
-        />
+        {canChat ? (
+          <ChatComposer
+            agentId={agentId}
+            isStreaming={isStreaming}
+            att={att}
+            onSend={send}
+            onStop={stop}
+            large={showWelcome}
+            focusToken={composerFocusToken}
+          />
+        ) : (
+          <div className="mx-auto w-full max-w-3xl rounded-lg border bg-card px-4 py-3 text-sm text-muted-foreground">
+            Members can read existing conversations. An admin is required to send messages or start new chats.
+          </div>
+        )}
       </div>
 
       {/* Bottom: balances the vertical centering and carries the welcome subtitle. */}
