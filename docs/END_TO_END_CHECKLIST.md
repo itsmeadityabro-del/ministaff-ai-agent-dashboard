@@ -6,7 +6,7 @@ Last reviewed: 2026-10-16 (Asia/Kolkata). This is the canonical dashboard/workfl
 
 ## Verified evidence on the GitHub branch
 
-- [x] GitHub Actions CI passed on commit c0520a3425a6b65aafc5424243e95d422a7832d on 2026-10-16: npm ci, npm test, npm run typecheck, and npm run build. [Workflow run](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38934557358).
+- [x] GitHub Actions CI passed on commit 158b2965ca24b3b7f39f319d143370fee51619b on 2026-10-16: npm ci, npm test, npm run typecheck, and npm run build. [Workflow run](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38935121292).
 - [x] Non-billable Node unit/contract tests passed in the same CI run, including a regression check that the customer API cannot create or delete a subscription-managed Agent37 instance.
 - [x] Source and Cloudflare metadata reviewed on 2026-10-16.
 - [ ] Cloudflare staging build matches the reviewed GitHub commit; no deployment has been verified from this branch.
@@ -16,8 +16,8 @@ Last reviewed: 2026-10-16 (Asia/Kolkata). This is the canonical dashboard/workfl
 
 - [ ] **CODED — Supabase secret alias:** server-only client accepts `SUPABASE_SERVICE_ROLE_KEY` and `SUPABASE_SECRET_KEY`. Deploy and verify against staging.
 - [ ] **CODED — White-label branding:** MiniStaff name/logo changed in source. Verify responsive browser preview.
-- [ ] **CODED — Lead management:** workspace-scoped create/list/status update/delete APIs and basic dashboard.
-- [ ] **CODED — Appointment management:** workspace-scoped create/list/update/status/delete, ISO timestamp validation, IANA timezone validation, and overlap rejection backed by a database exclusion constraint.
+- [ ] **CODED — Lead management:** workspace-scoped create/list/search/edit/status-update/delete UI and APIs. Manual entry only; public inbound capture and CRM/prospecting integrations remain TODO below.
+- [ ] **CODED — Appointment management:** workspace-scoped create/list/edit/status/delete, lead reassignment scoped to the workspace, ISO timestamp validation, IANA timezone validation, and overlap rejection backed by a database exclusion constraint.
 - [ ] **CODED — Usage overview:** Agent37 managed budget, reported LLM input/output tokens, call count and live agent status. Confirm real provider response shape.
 - [ ] **CODED — Regression suite:** non-billable Node tests for time/email rules and static tenant/security contracts; not authenticated API integration tests.
 
@@ -38,16 +38,16 @@ Last reviewed: 2026-10-16 (Asia/Kolkata). This is the canonical dashboard/workfl
 
 ## Lead and appointment acceptance
 
-- [ ] **TODO — Lead lifecycle:** create, search, edit fields, update all statuses, delete, reload and verify persistence.
-- [ ] **TODO — Appointment lifecycle:** create, update, complete/cancel, delete, reload and verify timezone display.
-- [ ] **TODO — Booking collision:** overlapping scheduled appointments rejected by database constraint (HTTP 409); back-to-back appointments allowed; concurrent test against staging.
+- [ ] **CODED — Lead lifecycle:** create, search, edit fields, update all statuses, delete, reload and verify persistence in Supabase staging.
+- [ ] **CODED — Appointment lifecycle:** create, edit title/lead/time/notes/status, complete/cancel, delete, reload and verify timezone display in Supabase staging.
+- [ ] **CODED — Booking collision:** application check plus database exclusion constraint return HTTP 409 for overlaps; staging checks for concurrent and back-to-back cases remain required.
 - [ ] **TODO — Calendar integration:** not provided by appointment CRUD alone. Configure Google/Outlook or another calendar before claiming synced availability or sending invites.
 - [ ] **TODO — Lead discovery/inbound capture:** manual lead entry exists; public form/webhook capture, CRM sync and external prospect discovery remain unverified.
 
 ## Usage, plan limits, billing
 
-- [ ] **TODO — Usage accuracy:** compare dashboard spend/token counts with Agent37's reported values for the same period.
-- [ ] **TODO — Plan enforcement:** verify provider-side managed-spend caps and plan entitlement. A dashboard meter alone does not enforce spending limits.
+- [ ] **CODED — Usage accuracy:** dashboard maps Agent37 spend, input/output tokens, and call counts; compare displayed values against the live provider for the same period.
+- [ ] **CODED — Plan enforcement:** activation Worker assigns provider-side plan budgets and the dashboard reports remaining budget; verify actual provider cap enforcement and entitlement changes in staging. A dashboard meter alone does not enforce spending limits.
 - [ ] **TODO — BYOK accounting:** confirm external subscription/API use is not falsely represented as Agent37 managed spend.
 - [ ] **BLOCKED — Gumroad flow:** Plus/Pro/Max checkout, valid/invalid/refunded/cancelled license, activation, idempotency, provisioning and cancellation with an approved test purchase. Worker-specific steps are tracked in the [website/Worker release checklist](https://github.com/itsmeadityabro-del/ministaff-ai-website/blob/codex/ministaff-e2e-checklists/docs/WORKER_RELEASE_CHECKLIST.md).
 
