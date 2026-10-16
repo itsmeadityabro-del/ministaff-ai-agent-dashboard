@@ -1,5 +1,5 @@
 import { agent37 } from "@/lib/agent37";
-import { requireAdmin, requireMember, requireUser } from "@/lib/auth";
+import { requireAdmin, requireMember, requireUser, requireMiniStaffAccount } from "@/lib/auth";
 import { AGENT_TEMPLATES, DEFAULT_AGENT, templateAppPorts } from "@/config/agents";
 import { usdToMicros } from "@/lib/format";
 import { ApiError, handleError, json, readJson } from "@/lib/http";
@@ -33,27 +33,31 @@ async function resolveTemplate(): Promise<string | undefined> {
 
 export async function GET(request: Request) {
   try {
-    const { db, user } = await requireUser();
+    const { db, user, account } = await requireMiniStaffAccount();
     const workspaceId = new URL(request.url).searchParams.get("workspace");
     if (!workspaceId) throw new ApiError(400, "invalid_request", "workspace query param is required");
+    if (!account.workspace_id || workspaceId !== account.workspace_id) {
+      throw new ApiError(404, "not_found", "Workspace not found");
+    }
 
     const role = await requireMember(db, workspaceId, user.id);
 
     const { data: rows, error } = await db
       .from("agents")
       .select("*")
-      .eq("workspace_id", workspaceId)
+      .eq("workspace_id", account.workspace_id)
+      .eq("agent37_id", account.agent37_id)
       .order("created_at", { ascending: false });
     if (error) throw new ApiError(500, "db_error", error.message);
 
     let live = new Map<string, Agent>();
     let templates = new Map<string, Template>();
     const [liveRes, tmplRes] = await Promise.allSettled([
-      agent37.listAgents(),
+      agent37.getAgent(account.agent37_id),
       getTemplates(),
     ]);
     if (liveRes.status === "fulfilled") {
-      live = new Map(liveRes.value.data.map((i) => [i.id, i]));
+      live = new Map([[liveRes.value.id, liveRes.value]]);
     }
     if (tmplRes.status === "fulfilled") {
       templates = new Map(tmplRes.value.map((t) => [t.name, t]));
@@ -102,58 +106,10 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
-    const { db, user } = await requireUser();
-    // Shape is fixed server-side (DEFAULT_AGENT); the client picks the workspace and agent type.
-    const body = await readJson<{ workspace_id?: string; template?: string }>(request);
-
-    const workspaceId = body.workspace_id;
-    if (!workspaceId) throw new ApiError(400, "invalid_request", "workspace_id is required");
-    await requireAdmin(db, workspaceId, user.id);
-
-    // Paywall/entitlement seam: a fork can gate agent creation here, e.g.
-    // if (!(await canCreateAgent(db, workspaceId))) throw new ApiError(403, "forbidden", "Agent creation is not enabled for this workspace.");
-
-    const template =
-      body.template && AGENT_TEMPLATES.includes(body.template)
-        ? body.template
-        : await resolveTemplate();
-
-    const agent = await agent37.createAgent({
-      template,
-      resources: {
-        cpu: DEFAULT_AGENT.cpu,
-        memory: DEFAULT_AGENT.memory,
-        disk: DEFAULT_AGENT.disk,
-      },
-      user: user.id,
-      metadata: { app_workspace: workspaceId },
-      budget: { monthly_cap_micros: usdToMicros(DEFAULT_AGENT.monthlyCapUsd) },
-    });
-
-    const { error } = await db.from("agents").insert({
-      agent37_id: agent.id,
-      workspace_id: workspaceId,
-      name: agent.name || null,
-      status: agent.status,
-      template: agent.template,
-      cpu: agent.resources.cpu,
-      memory: agent.resources.memory,
-      disk: agent.resources.disk,
-      created_by: user.id,
-    });
-    if (error) {
-      // Roll back the orphaned agent so we never bill for an untracked box.
-      try {
-        await agent37.deleteAgent(agent.id);
-      } catch {
-        /* best-effort */
-      }
-      throw new ApiError(500, "db_error", error.message);
-    }
-
-    return json(agent, 201);
+    await requireMiniStaffAccount();
+    throw new ApiError(403, "additional_agents_disabled", "MiniStaff provisions one managed staffer per active subscription. Contact support if you need an account repair.");
   } catch (e) {
     return handleError(e);
   }

@@ -1,47 +1,36 @@
-import { requireUser } from "@/lib/auth";
-import { handleError, json, readJson, ApiError } from "@/lib/http";
-import type { Role, Workspace, WorkspaceWithRole } from "@/lib/types";
+import { requireMiniStaffAccount } from "@/lib/auth";
+import { ApiError, handleError, json } from "@/lib/http";
+import type { WorkspaceWithRole } from "@/lib/types";
 
 export async function GET() {
   try {
-    const { db, user } = await requireUser();
-    const { data, error } = await db
-      .from("memberships")
-      .select("role, workspaces(*)")
-      .eq("user_id", user.id);
-    if (error) throw new ApiError(500, "db_error", error.message);
-
-    const workspaces: WorkspaceWithRole[] = (data ?? [])
-      .map((row) => {
-        const ws = row.workspaces as unknown as Workspace | null;
-        if (!ws) return null;
-        return { ...ws, role: row.role as Role };
-      })
-      .filter((w): w is WorkspaceWithRole => w !== null)
-      .sort((a, b) => a.created_at.localeCompare(b.created_at));
-
-    return json({ workspaces });
-  } catch (e) {
-    return handleError(e);
-  }
-}
-
-export async function POST(request: Request) {
-  try {
-    const { db, user } = await requireUser();
-    const { name } = await readJson<{ name?: string }>(request);
-    const trimmed = (name || "").trim();
-    if (!trimmed) throw new ApiError(400, "invalid_request", "Workspace name is required");
+    const { db, account } = await requireMiniStaffAccount();
+    if (!account.workspace_id) throw new ApiError(409, "workspace_not_ready", "MiniStaff workspace is not ready");
 
     const { data, error } = await db
       .from("workspaces")
-      .insert({ name: trimmed, owner_id: user.id })
       .select("*")
-      .single();
+      .eq("id", account.workspace_id)
+      .maybeSingle();
     if (error) throw new ApiError(500, "db_error", error.message);
+    if (!data) throw new ApiError(404, "not_found", "MiniStaff workspace not found");
 
-    return json({ workspace: { ...(data as Workspace), role: "admin" as Role } }, 201);
-  } catch (e) {
-    return handleError(e);
+    const workspace: WorkspaceWithRole = { ...data, role: "admin" };
+    return json({ workspaces: [workspace] });
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
+export async function POST(_request: Request) {
+  try {
+    await requireMiniStaffAccount();
+    throw new ApiError(
+      403,
+      "additional_workspaces_disabled",
+      "MiniStaff provides one workspace per active subscription. Contact support for account changes.",
+    );
+  } catch (error) {
+    return handleError(error);
   }
 }

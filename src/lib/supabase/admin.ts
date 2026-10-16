@@ -18,10 +18,10 @@ let cached: SupabaseClient | null = null;
 export function createAdminClient(): SupabaseClient {
   if (cached) return cached;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
   if (!url || !key) {
     throw new Error(
-      "Supabase admin client needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY — run `npm run setup`."
+      "Supabase admin client needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY — run `npm run setup`."
     );
   }
   cached = createClient(url, key, {

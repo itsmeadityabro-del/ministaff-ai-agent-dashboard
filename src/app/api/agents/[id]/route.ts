@@ -1,4 +1,3 @@
-import { agent37, Agent37Error } from "@/lib/agent37";
 import { requireAgentAccess } from "@/lib/auth";
 import { ApiError, handleError, json, readJson } from "@/lib/http";
 
@@ -25,17 +24,16 @@ export async function PATCH(request: Request, { params }: Ctx) {
 export async function DELETE(_request: Request, { params }: Ctx) {
   try {
     const { id } = await params;
-    const { db } = await requireAgentAccess(id, "admin");
-
-    try {
-      await agent37.deleteAgent(id);
-    } catch (e) {
-      // Instance already gone upstream — still remove our mirror row.
-      if (!(e instanceof Agent37Error && e.status === 404)) throw e;
-    }
-    await db.from("agents").delete().eq("agent37_id", id);
-
-    return json({ id, deleted: true });
+    // MiniStaff subscriptions own one provisioned Agent37 instance. Deleting it
+    // from the customer-facing dashboard could orphan a paid subscription and
+    // cannot be undone from this UI; account repair/deprovisioning stays an
+    // explicit support operation.
+    await requireAgentAccess(id, "admin");
+    throw new ApiError(
+      403,
+      "managed_agent_protected",
+      "The managed MiniStaff staffer cannot be deleted from the customer dashboard. Contact support for account repair.",
+    );
   } catch (e) {
     return handleError(e);
   }
