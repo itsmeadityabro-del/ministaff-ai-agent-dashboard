@@ -1,5 +1,5 @@
 import { requireAdmin, requireUser } from "@/lib/auth";
-import { agent37 } from "@/lib/agent37";
+import { agent37, Agent37Error } from "@/lib/agent37";
 import { ApiError, handleError, json, readJson } from "@/lib/http";
 import type { Workspace } from "@/lib/types";
 
@@ -34,22 +34,46 @@ export async function DELETE(_request: Request, { params }: Ctx) {
     const { id } = await params;
     const { db, user } = await requireUser();
 
-    const { data: ws } = await db.from("workspaces").select("owner_id").eq("id", id).maybeSingle();
-    if (!ws) throw new ApiError(404, "not_found", "Workspace not found");
-    if (ws.owner_id !== user.id) throw new ApiError(403, "forbidden", "Only the owner can delete a workspace");
+    const { data: ws, error: workspaceError } = await db
+      .from("workspaces")
+      .select("owner_id")
+      .eq("id", id)
+      .maybeSingle();
+    if (workspaceError) throw new ApiError(500, "db_error", "Unable to verify workspace ownership");
+    // Hide existence from users who are not the owner.
+    if (!ws || ws.owner_id !== user.id) throw new ApiError(404, "not_found", "Workspace not found");
 
-    // Tear down the workspace's Agent37 agents first so none are orphaned.
-    const { data: rows } = await db.from("agents").select("agent37_id").eq("workspace_id", id);
+    const { data: rows, error: agentsError } = await db
+      .from("agents")
+      .select("agent37_id")
+      .eq("workspace_id", id);
+    if (agentsError) throw new ApiError(500, "db_error", "Unable to load workspace agents");
+
+    // Keep the workspace record if a provider deletion fails. A retry can safely ignore upstream
+    // 404s for agents already deleted in a previous partial attempt, while avoiding hidden billable
+    // instances being orphaned by deleting their workspace row first.
     for (const row of rows ?? []) {
       try {
         await agent37.deleteAgent(row.agent37_id as string);
-      } catch {
-        /* best-effort */
+      } catch (error) {
+        if (error instanceof Agent37Error && error.status === 404) continue;
+        throw new ApiError(
+          502,
+          "agent_cleanup_failed",
+          "Could not delete every agent. The workspace was kept; resolve the agent-service error and retry.",
+        );
       }
     }
 
-    const { error } = await db.from("workspaces").delete().eq("id", id);
-    if (error) throw new ApiError(500, "db_error", error.message);
+    const { data: deleted, error } = await db
+      .from("workspaces")
+      .delete()
+      .eq("id", id)
+      .eq("owner_id", user.id)
+      .select("id")
+      .maybeSingle();
+    if (error) throw new ApiError(500, "db_error", "Workspace could not be deleted");
+    if (!deleted) throw new ApiError(404, "not_found", "Workspace not found");
 
     return json({ id, deleted: true });
   } catch (e) {
