@@ -113,7 +113,7 @@
 - [x] Deploy the MiniStaff app to the dedicated Cloudflare staging Worker and verify its live `/api/health` response. This confirms staging runtime reachability only; production release, Supabase/Auth, and Agent37 integrations remain unverified.
 - [x] Added a dedicated Cloudflare Worker build/dry-run workflow and guarded staging publish + health-check steps on `build/ministaff-from-scratch`. The repository secret `CLOUDFLARE_API_TOKEN` is configured, and the staging publish plus health check passed in [Worker run 38881986997](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38881986997).
 - [ ] Configure Node 22 build/runtime assumptions, environment variables, cache behavior, and Worker request/runtime limits.
-- [ ] Add the server-only Supabase secret API key as GitHub Actions secret `SUPABASE_SECRET_KEY` (the project URL/publishable key are already stored and synced to staging). Configure `AGENT37_API_KEY` and the cron secret only after the Supabase auth/data path is verified and Agent37 cost/budget checks are approved.
+- [ ] Add the server-only Supabase secret API key as GitHub Actions secret `SUPABASE_SECRET_KEY` (verified absent from the repository's current five secret names; project URL/publishable key are already stored and synced to staging). Configure `AGENT37_API_KEY` and the cron secret only after the Supabase auth/data path is verified and Agent37 cost/budget checks are approved.
 - [ ] Ensure secret names/values are not committed, printed in logs, or included in client-prefixed variables unless explicitly public.
 - [x] Apply reviewed, versioned database migrations to the dedicated Supabase staging project; verified all four migration records and table/RLS inventory. Live auth and data-path smoke tests are still required before serving traffic.
 - [ ] Deploy to a preview URL; verify health response, login, callback links, data writes, Agent37 connectivity, error monitoring, and rollback path.
@@ -126,7 +126,7 @@
 ## 9. Automated verification & release gate
 
 - [x] Existing CI workflow runs dependency installation, TypeScript typecheck, and Next.js production build.
-- [x] Verified the latest source changes with standard CI [38884159683](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884159683) and Worker deploy/public-Supabase-binding/health run [38884117058](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884117058). The latter passed; its privileged secret-sync step was skipped because `SUPABASE_SECRET_KEY` is not yet configured.
+- [x] Verified the latest source changes with standard CI [38884691642](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884691642) and the most recent successful Worker deploy/public-Supabase-binding/health run [38884117058](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884117058). The privileged secret-sync step was skipped because `SUPABASE_SECRET_KEY` is not yet configured.
 - [ ] Add automated tests for redirect safety, auth callback paths, webhook auth/idempotency, permission checks, quota enforcement, and queue retry transitions.
 - [ ] Run `npm ci`, `npm run typecheck`, `npm run build`, and non-billable smoke tests on the final candidate commit.
 - [ ] Run browser E2E against the preview deployment for signup → email confirmation → login → create workspace → create lead → enqueue/process job → appointment → usage.
@@ -144,7 +144,7 @@ Fill these fields in only after observing the actual deployment:
 - **Cloudflare compatibility/build:** 100% compatibility scan. Worker build, staging publish, Supabase public-binding sync, and health check passed on [run 38884117058](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884117058); ordinary CI passed on [run 38884159683](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884159683).
 - **Supabase project ref/status:** `qgxjjvhzggepfurjtpyd` (`ministaff-ai`), ACTIVE_HEALTHY, region `ap-south-1`; migrations 0001–0004 applied and verified. Auth site URL/allowlist configured; SMTP is pending. `SUPABASE_SECRET_KEY` remains a manual repository-secret step.
 - **Agent37 create/chat/delete smoke run:** _not run; requires server key and budget approval_
-- **Last verified full CI run:** [run 38884159683](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884159683) — success on head `c4bf46d00b78b8c2dca5aa70fac063986ef247c6`, including dependency installation, TypeScript typecheck, security regression tests, and Next.js build.
+- **Last verified full CI run:** [run 38884691642](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884691642) — success on head `062aedc243da96f7a094c82de09aa7b5ee8cb785`, including dependency installation, TypeScript typecheck, security regression tests, and Next.js build.
 - **Checklist refresh commit / CI:** this document records the fresh Supabase project, four applied migrations, and latest staging/CI evidence above. Authentication and tenant-isolation tests, Agent37 connectivity, server-only secret configuration, and production release remain open.
 - **Verified by / date:** _pending_
 
