@@ -165,11 +165,13 @@ Fill these fields in only after observing the actual deployment:
 
 
 ## 11. DigitalPlat domain registration checkpoint (2026-10-16)
-- [x] User confirmed this is the account they want to use and requested registration.
-- [x] Opened the current authenticated registration form; it showed one free slot, no paid/plan slots, required policy acknowledgement, and `.qzz.io` consumes a paid slot.
-- [x] Reviewed current DigitalPlat Terms of Service eligibility: users under the age of majority may use the service only with consent and supervision of a parent/legal guardian who agrees to be bound. Source: https://domain.digitalplat.org/terms-of-service/
-- [ ] Pause here until a parent/legal guardian explicitly confirms consent and supervision. Do not tick the policy box or attempt a registration before then.
-- [ ] After guardian confirmation, check candidate `ministaff.dpdns.org` availability and current permitted suffix rules; account dashboard says .US.KG and .XX.KG registrations are paused for accounts below Power.
-- [ ] If candidate is available and no charge is shown, prepare the Cloudflare DNS zone and note its exact assigned nameservers.
-- [ ] Submit only after verifying exact name, supported suffix, accurate registrant details, nameservers, policies, slot use, and no unexpected charge. Then confirm exact domain in Domain List.
-- [x] No terms were acknowledged, no registration submitted, no payment made, and no Cloudflare zone or DNS changes were made during this attempt.
+- [x] User replied "approved complete setup" after the guardian-consent checkpoint; DigitalPlat account name shown is "Sudeep Sahu" and user previously confirmed it is the intended account.
+- [x] Live DigitalPlat availability check confirmed `ministaff.dpdns.org` is available for the free slot (account UI showed 1 free slot, 0 paid slots, 0 plan slots).
+- [x] Selected `.dpdns.org`, selected the free domain slot, and selected External nameservers. No paid slot/bundle/subscription used.
+- [x] Created Cloudflare zone `ministaff.dpdns.org` under the same account that contains the MiniStaff staging Worker; plan is Free Website, zone ID `7bed7a8696b9b569b086bcdcc3058c01`, status `pending`. Exact assigned nameservers: `patryk.ns.cloudflare.com`, `peaches.ns.cloudflare.com`.
+- [x] Entered both exact Cloudflare nameservers in the DigitalPlat form.
+- [ ] Complete DigitalPlat's official account reauthentication. The free slot flow requires GitHub OAuth verification; clicking "Verify with GitHub" returned `reauthentication_required` and "Verify your identity to change security settings." User must complete this through the official UI; do not bypass reauthentication or ask for/share passwords or codes.
+- [ ] After verification succeeds, finish registration using the selected free slot and exact Cloudflare nameservers. Then verify exact domain appears in DigitalPlat Domain List and confirm Cloudflare zone status becomes active.
+- [ ] Configure records/Worker custom hostname and email-sending DNS only after active delegation is verified. The root hostname is not yet connected to the staging Worker, SMTP isn't configured, and this is not a production release.
+- [x] No domain registration was submitted and no payment was made. Existing Workers and Pages were not modified.
+
