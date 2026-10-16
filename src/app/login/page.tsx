@@ -41,7 +41,7 @@ export default function LoginPage() {
     if (error === "auth") {
       toast.error("That link is invalid or has expired. Sign in, or request a new one.");
     } else if (error === "unverified") {
-      toast.error("Verify your email before opening your workspace. Check your inbox for the confirmation link.");
+      toast.error("Verify your email or phone before opening your workspace. Check your inbox or request a new verification code.");
     } else {
       return;
     }
@@ -61,6 +61,20 @@ export default function LoginPage() {
     const url = new URL("/auth/callback", publicSiteOrigin(window.location.origin));
     url.searchParams.set("next", next);
     return url.toString();
+  }
+
+  async function resendConfirmation() {
+    const mail = sentEmail.trim();
+    if (!mail) return;
+    setLoading(true);
+    const { error } = await createClient().auth.resend({
+      type: "signup",
+      email: mail,
+      options: { emailRedirectTo: callbackUrl(safeNextPath(new URLSearchParams(window.location.search).get("next"))) },
+    });
+    setLoading(false);
+    if (error) return toast.error("Could not resend the confirmation email. Please try again later.");
+    toast.success("If the address can receive a confirmation, a new email has been sent.");
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -145,6 +159,11 @@ export default function LoginPage() {
                 <span className="font-medium text-foreground">{sentEmail}</span>.
               </p>
             </div>
+            {sent === "signup" && (
+              <Button type="button" variant="outline" className="w-full" disabled={loading} onClick={() => void resendConfirmation()}>
+                {loading ? "Sending..." : "Resend confirmation email"}
+              </Button>
+            )}
             <button
               type="button"
               onClick={() => switchMode("signin")}
