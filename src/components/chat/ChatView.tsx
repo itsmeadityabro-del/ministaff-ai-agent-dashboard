@@ -72,7 +72,7 @@ export function ChatView({ canChat }: { canChat: boolean }) {
     () => sessions.find((s) => s.session_id === activeSessionId)?.title?.trim(),
     [sessions, activeSessionId]
   );
-  const headerTitle = activeTitle || (activeSessionId ? "Chat" : "New chat");
+  const headerTitle = activeTitle || (activeSessionId ? "Chat" : canChat ? "New chat" : "Read-only chat");
   const agentName = useMemo(() => {
     const a = agents.find((x) => x.agent37_id === agentId);
     return a?.name?.trim() || agentId;
@@ -116,7 +116,7 @@ export function ChatView({ canChat }: { canChat: boolean }) {
           <ChatMessages messages={messages} isStreaming={isStreaming} />
         ) : (
           <h1 className="text-[26px] font-semibold tracking-tight text-foreground sm:text-[30px]">
-            What can I help with?
+            {canChat ? "What can I help with?" : "Chat is read-only for members"}
           </h1>
         )}
       </div>
@@ -149,7 +149,7 @@ export function ChatView({ canChat }: { canChat: boolean }) {
       </div>
 
       {/* Bottom: balances the vertical centering and carries the welcome subtitle. */}
-      {showWelcome && (
+      {showWelcome && canChat && (
         <div className="flex flex-1 flex-col items-center px-4 pt-3">
           <p className="text-sm text-muted-foreground">
             The more context you give, the better your agent can help.
