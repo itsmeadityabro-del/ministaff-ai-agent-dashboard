@@ -31,6 +31,8 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 - Project URL: https://qgxjjvhzggepfurjtpyd.supabase.co
 - Region: ap-south-1 (Mumbai, India)
 - Status: ACTIVE_HEALTHY; all listed services reported healthy.
+- Auth site URL is the staging Worker URL; redirect allowlist includes staging callback paths and localhost development paths. Supabase password minimum is set to 8 characters, matching the app.
+- Email/password signup is enabled and email auto-confirm is disabled, so email verification is required. Custom SMTP/sender is not configured yet; reliable confirmation and reset email delivery remains unverified.
 - This is a new, dedicated MiniStaff project. Neither older inactive project was modified.
 - All four migrations from supabase/migrations were applied in order and migration history confirmed them:
   1. 0001_init — version 20261016095558
@@ -60,6 +62,7 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 ## Immediate next action
 1. User adds SUPABASE_SECRET_KEY directly in GitHub Settings → Secrets and variables → Actions.
 2. Rerun the staging Worker workflow and confirm the secret sync/health check.
-3. Run live signup, email-verification, callback, login/logout, password-recovery, workspace-creation, authorization, and workspace-isolation tests.
-4. Then configure Agent37 as a server-side secret, check wallet/billing status, and test only a budget-approved test instance.
-5. Continue updating this file and docs/BUILD_AND_LAUNCH_CHECKLIST.md at every substantive project turn.
+3. Configure a trusted SMTP/email sender in Supabase Auth and verify delivery.
+4. Run live signup, email-verification, callback, login/logout, password-recovery, workspace-creation, authorization, and workspace-isolation tests.
+5. Then configure Agent37 as a server-side secret, check wallet/billing status, and test only a budget-approved test instance.
+6. Continue updating this file and docs/BUILD_AND_LAUNCH_CHECKLIST.md at every substantive project turn.
