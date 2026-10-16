@@ -8,10 +8,9 @@ const source = readFileSync(new URL("../src/lib/site-url.ts", import.meta.url), 
 const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
 }).outputText;
-const moduleExports = {};
+const moduleExports = Object.create(null);
 vm.runInNewContext(compiled, {
   exports: moduleExports,
-  require,
   process,
   URL,
 }, { timeout: 1000 });
