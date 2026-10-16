@@ -147,22 +147,43 @@ jobs:
         shell: bash
         run: |
           url="https://ministaff-ai-dashboard-staging.itsmeadityabro.workers.dev/api/health"
-          response=""
-          for attempt in 1 2 3 4 5 6 7 8; do
-            response="$(curl --fail --silent --show-error "$url" 2>/dev/null || true)"
-            if [ -n "$response" ]; then
+          response_file="$(mktemp)"
+          curl_error_file="$(mktemp)"
+          status_code=""
+          for attempt in $(seq 1 12); do
+            : > "$response_file"
+            : > "$curl_error_file"
+            status_code="$(curl --silent --show-error --max-time 10 --output "$response_file" --write-out '%{http_code}' "$url" 2>"$curl_error_file" || true)"
+            if [ "$status_code" = "200" ]; then
               break
             fi
-            sleep 2
+            detail="$(head -c 300 "$response_file" 2>/dev/null || true)"
+            curl_error="$(head -c 300 "$curl_error_file" 2>/dev/null || true)"
+            echo "Health probe $attempt/12: HTTP ${status_code:-no-status}. ${detail} ${curl_error}"
+            sleep 3
           done
-          if [ -z "$response" ]; then
-            echo "Staging health endpoint did not return a successful response: $url"
+          response="$(cat "$response_file" 2>/dev/null || true)"
+          if [ "$status_code" != "200" ] || [ -z "$response" ]; then
+            echo "Staging health endpoint failed: URL=$url HTTP=${status_code:-no-status}"
+            echo "Response body (first 1000 bytes):"
+            head -c 1000 "$response_file" 2>/dev/null || true
+            echo
+            echo "Curl error (first 1000 bytes):"
+            head -c 1000 "$curl_error_file" 2>/dev/null || true
+            echo
+            root_file="$(mktemp)"
+            root_code="$(curl --silent --show-error --max-time 10 --output "$root_file" --write-out '%{http_code}' "https://ministaff-ai-dashboard-staging.itsmeadityabro.workers.dev/" 2>&1 || true)"
+            echo "Root URL diagnostic: status/output=${root_code}; body (first 500 bytes):"
+            head -c 500 "$root_file" 2>/dev/null || true
+            echo
             exit 1
           fi
           printf '%s' "$response" | node --input-type=module -e '
             let input = "";
             for await (const chunk of process.stdin) input += chunk;
-            const payload = JSON.parse(input);
+            let payload;
+            try { payload = JSON.parse(input); }
+            catch { console.error("Health response was not valid JSON:", input.slice(0, 1000)); process.exit(1); }
             if (payload.ok !== true || payload.service !== "ministaff-ai") {
               console.error("Unexpected health response:", payload);
               process.exit(1);
