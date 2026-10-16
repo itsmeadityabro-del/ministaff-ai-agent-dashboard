@@ -8,8 +8,8 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 ## Repository safety
 - Repository: itsmeadityabro-del/ministaff-ai-agent-dashboard
 - Working branch: build/ministaff-from-scratch
-- Latest relevant app source commit deployed to staging: 6f522e7f8ccc5ae048c0296771d26358f6d3e42c
-- Latest successful ordinary CI: [38884691642](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884691642) on checklist commit 062aedc243da96f7a094c82de09aa7b5ee8cb785.
+- Latest verified staging deploy run: [38887168927](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38887168927) succeeded on branch `build/ministaff-from-scratch`; the server-only Supabase key sync step and staging health probe both passed. Build head was `99abee47829c6cad64b5c73b32592662c619ce28`.
+- Latest successful ordinary CI: [38886945020](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38886945020) on commit `99abee47829c6cad64b5c73b32592662c619ce28`.
 - Keep main and feature/ministaff-sales-desk unchanged unless the user explicitly authorizes changes there.
 - Preserve the existing Cloudflare Pages site ministaff-ai.pages.dev and Worker ministaff-forms.
 - Do not use Remote Desktop Commander for MiniStaff unless explicitly requested in the current turn.
@@ -21,7 +21,7 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 - Latest successful Worker build/deploy/public-Supabase-bindings/health-check run: https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884117058
 - Latest successful normal CI (typecheck, security regression tests, Next build): https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884691642
 - Health endpoint is verified with {"ok":true,"service":"ministaff-ai"}.
-- The Worker workflow now builds with the Supabase URL and publishable key; after deployment it syncs the URL and publishable key as Worker secrets. The privileged runtime key step is intentionally pending until SUPABASE_SECRET_KEY exists as a GitHub repository secret.
+- The Worker workflow builds with the Supabase URL and publishable key, then syncs the URL and publishable key as Worker secrets. On run [38887168927](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38887168927), `Configure server-only Supabase secret key` and `Verify staging health endpoint` both passed.
 - This is staging, not production. No live sign-up, confirmation email, login, data writes, Agent37 or tenant-isolation end-to-end test has passed yet.
 
 ## Fresh Supabase project — created and migrated
@@ -44,7 +44,7 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 
 ## Supabase keys and remaining manual credential step
 - Verified GitHub Actions secret names currently present: `CLOUDFLARE_API_TOKEN`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (legacy compatibility), `SUPABASE_DB_PASSWORD`, and `SUPABASE`. The newly added `SUPABASE` name is not read by the workflow: both `SUPABASE_SECRET_KEY` and legacy `SUPABASE_SERVICE_ROLE_KEY` are still absent.
-- The Cloudflare workflow successfully synced NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY to the staging Worker on run 38884117058; its server-only secret-key step was skipped because SUPABASE_SECRET_KEY was absent.
+- The Cloudflare workflow synced public Supabase settings and the server-only key to the staging Worker on run [38887168927](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38887168927); the server-key step no longer skips.
 - REQUIRED manual action remains: add the existing value again as a GitHub Actions secret named exactly `SUPABASE_SECRET_KEY`. `SUPABASE` is not an alias, so the workflow cannot read it under the required name. Use the Supabase project's Settings → API Keys → Secret keys page: https://supabase.com/dashboard/project/qgxjjvhzggepfurjtpyd/settings/api-keys . Never paste the value into chat, commit it, or expose it to client code; the existing `SUPABASE` entry may remain for now.
 - After the correctly named `SUPABASE_SECRET_KEY` exists, verify its name and dispatch the Cloudflare Worker workflow. Do not dispatch yet: with only `SUPABASE` present, the privileged sync step will be skipped. Until the expected key name exists, admin-backed data operations remain unconfigured.
 - Application code prefers the current Supabase publishable key on client/session clients, while retaining NEXT_PUBLIC_SUPABASE_ANON_KEY as a legacy fallback. The server-only admin client prefers SUPABASE_SECRET_KEY, with SUPABASE_SERVICE_ROLE_KEY as a migration fallback.
@@ -60,8 +60,9 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 - Production dependency audit previously reported no production dependencies with critical/high vulnerabilities; 7 high findings remain in development/build tooling and should be remediated with compatibility retesting.
 
 ## Immediate next action
-1. User adds the existing Supabase secret API key under the exact GitHub Actions name `SUPABASE_SECRET_KEY` (not only `SUPABASE`).
-2. Rerun the staging Worker workflow and confirm the secret sync/health check.
+1. Configure trusted SMTP/email sending in Supabase Auth and verify confirmation/reset email delivery.
+2. Run live signup, verification, callback, sign-in/out, password-recovery, workspace creation, permissions, and tenant-isolation tests.
+3. Verify the dashboard live against the staging Worker. The deploy/health check passed, but these user-flow tests have not run.
 3. Configure a trusted SMTP/email sender in Supabase Auth and verify delivery.
 4. Run live signup, email-verification, callback, login/logout, password-recovery, workspace-creation, authorization, and workspace-isolation tests.
 5. Then configure Agent37 as a server-side secret, check wallet/billing status, and test only a budget-approved test instance.
