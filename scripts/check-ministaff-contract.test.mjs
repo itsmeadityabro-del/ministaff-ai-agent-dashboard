@@ -38,3 +38,38 @@ test("customer API cannot create or delete a subscription-managed Agent37 instan
   assert.match(item, /managed_agent_protected/);
   assert.doesNotMatch(item, /agent37\.deleteAgent\(/);
 });
+
+
+test("managed workspace cannot be deleted or expanded into extra workspaces", async () => {
+  const workspaceItem = await read("../src/app/api/workspaces/[id]/route.ts");
+  const workspaceCollection = await read("../src/app/api/workspaces/route.ts");
+  assert.match(workspaceItem, /managed_workspace_protected/);
+  assert.doesNotMatch(workspaceItem, /agent37\\.deleteAgent\\s*\\(/);
+  assert.match(workspaceCollection, /requireMiniStaffAccount/);
+  assert.match(workspaceCollection, /additional_workspaces_disabled/);
+});
+
+test("agent data is scoped to the linked MiniStaff account, not a caller-selected workspace", async () => {
+  const source = await read("../src/app/api/agents/route.ts");
+  assert.match(source, /requireMiniStaffAccount/);
+  assert.match(source, /workspaceId !== account\\.workspace_id/);
+  assert.match(source, /eq\\("agent37_id", account\\.agent37_id\\)/);
+  assert.match(source, /additional_agents_disabled/);
+});
+
+test("legacy team routes and UI cannot add users or remove managed membership", async () => {
+  const members = await read("../src/app/api/workspaces/[id]/members/route.ts");
+  const removeMember = await read("../src/app/api/workspaces/[id]/members/[userId]/route.ts");
+  const revokeInvite = await read("../src/app/api/workspaces/[id]/invitations/[token]/route.ts");
+  const acceptInvite = await read("../src/app/api/invitations/[token]/route.ts");
+  const invitePage = await read("../src/app/invite/[token]/page.tsx");
+  const accountMenu = await read("../src/components/AccountMenu.tsx");
+  const settings = await read("../src/components/SettingsView.tsx");
+  assert.match(members, /team_invitations_disabled/);
+  assert.match(removeMember, /team_membership_protected/);
+  assert.match(revokeInvite, /team_invitations_disabled/);
+  assert.match(acceptInvite, /team_invitations_disabled/);
+  assert.match(invitePage, /Team invitations are not enabled/);
+  assert.doesNotMatch(accountMenu, /New workspace/);
+  assert.doesNotMatch(settings, /Delete workspace/);
+});
