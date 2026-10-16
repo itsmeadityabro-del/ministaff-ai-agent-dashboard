@@ -56,10 +56,36 @@ export async function getAgentRow(db: DB, agent37Id: string): Promise<AgentRow> 
 // resolve the agent's mirror row, then gate on the workspace role — "member" for reads, "admin"
 // for mutations. Returns the privileged client, user, and row so the handler can get on with its
 // work (and run its DB writes through `db`).
-export async function requireAgentAccess(agent37Id: string, access: "member" | "admin" = "member") {
+export async function requireMiniStaffAccount() {
   const { db, user } = await requireUser();
-  const row = await getAgentRow(db, agent37Id);
-  if (access === "admin") await requireAdmin(db, row.workspace_id, user.id);
-  else await requireMember(db, row.workspace_id, user.id);
+  const email = user.email?.trim().toLowerCase();
+  if (!email || !user.email_confirmed_at) {
+    throw new ApiError(403, "account_unavailable", "A verified MiniStaff purchase email is required");
+  }
+  const { data, error } = await db
+    .from("ministaff_accounts")
+    .select("email, user_id, agent37_id, workspace_id, plan, entitlement_status")
+    .eq("email", email)
+    .maybeSingle();
+  if (error) throw new ApiError(500, "db_error", error.message);
+  if (!data || data.entitlement_status !== "active") {
+    throw new ApiError(403, "account_unavailable", "No active MiniStaff account is linked to this email");
+  }
+  if (data.user_id && data.user_id !== user.id) {
+    throw new ApiError(403, "account_unavailable", "This MiniStaff account is linked to another login");
+  }
+  return { db, user, account: data };
+}
+
+export async function requireAgentAccess(agent37Id: string, _access: "member" | "admin" = "member") {
+  const { db, user, account } = await requireMiniStaffAccount();
+  if (account.agent37_id !== agent37Id || !account.workspace_id) {
+    throw new ApiError(404, "not_found", "Agent not found");
+  }
+  const row = await getAgentRow(db, account.agent37_id);
+  if (row.workspace_id !== account.workspace_id) {
+    throw new ApiError(404, "not_found", "Agent not found");
+  }
+  await requireMember(db, row.workspace_id, user.id);
   return { db, user, row };
 }
