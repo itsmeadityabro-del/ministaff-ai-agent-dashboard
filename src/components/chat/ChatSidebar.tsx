@@ -8,7 +8,7 @@ import { useChatContext } from "./ChatProvider";
 
 // The "Chats" thread rail, rendered in the chat tab's own left column. Selecting or starting a
 // thread updates the chat URL (?session=) so refresh/Back/share reopen it.
-export function ChatSidebar() {
+export function ChatSidebar({ canManage }: { canManage: boolean }) {
   const { sessions, activeSessionId, onChatTab, loadingSessions, selectSession, startNewChat, deleteSession, renameSession } =
     useChatContext();
   // The open thread stays "active" even when you're on another tab (so its stream isn't cancelled),
@@ -50,15 +50,17 @@ export function ChatSidebar() {
       <div className="flex min-h-0 flex-1 flex-col py-3">
         <div className="flex items-center justify-between px-3 pb-1">
           <span className="text-xs font-medium text-muted-foreground">Chats</span>
-          <button
-            type="button"
-            onClick={startNewChat}
-            aria-label="New chat"
-            title="New chat"
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          >
-            <Plus className="h-4 w-4" />
-          </button>
+          {canManage && (
+            <button
+              type="button"
+              onClick={startNewChat}
+              aria-label="New chat"
+              title="New chat"
+              className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-2">
@@ -96,7 +98,7 @@ export function ChatSidebar() {
                         <button
                           type="button"
                           onClick={() => selectSession(s.session_id)}
-                          onDoubleClick={() => startRename(s.session_id, s.title)}
+                          onDoubleClick={canManage ? () => startRename(s.session_id, s.title) : undefined}
                           className={cn(
                             "flex w-full select-none items-center gap-2 rounded-md px-3 py-1.5 pr-14 text-left text-sm transition-colors",
                             highlightedSessionId === s.session_id
@@ -107,24 +109,28 @@ export function ChatSidebar() {
                           <MessageSquare className="h-3.5 w-3.5 shrink-0" />
                           <span className="truncate">{label}</span>
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => startRename(s.session_id, s.title)}
-                          aria-label={`Rename chat ${label}`}
-                          title="Rename chat"
-                          className="absolute right-8 top-1/2 -translate-y-1/2 text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setPendingDeleteId(s.session_id)}
-                          aria-label={`Delete chat ${label}`}
-                          title="Delete chat"
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
+                        {canManage && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => startRename(s.session_id, s.title)}
+                                                    aria-label={`Rename chat ${label}`}
+                                                    title="Rename chat"
+                                                    className="absolute right-8 top-1/2 -translate-y-1/2 text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
+                                                  >
+                                                    <Pencil className="h-3.5 w-3.5" />
+                                                  </button>
+                        )}
+                        {canManage && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => setPendingDeleteId(s.session_id)}
+                                                    aria-label={`Delete chat ${label}`}
+                                                    title="Delete chat"
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                                                  >
+                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                  </button>
+                        )}
                       </>
                     )}
                   </div>
