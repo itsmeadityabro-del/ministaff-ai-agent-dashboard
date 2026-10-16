@@ -82,22 +82,31 @@ jobs:
           cp "$RUNNER_TEMP/npm-audit-production-report.json" npm-audit-production-report.json
           node --input-type=module <<'NODE'
           import { appendFileSync, readFileSync } from "node:fs";
-          let report = {};
-          try { report = JSON.parse(readFileSync("npm-audit-production-report.json", "utf8")); } catch {}
-          const v = report.metadata?.vulnerabilities ?? {};
+          let report;
+          try {
+            report = JSON.parse(readFileSync("npm-audit-production-report.json", "utf8"));
+          } catch {
+            console.error("Blocking staging deployment: production npm audit report is missing or invalid.");
+            process.exit(1);
+          }
+          const v = report?.metadata?.vulnerabilities;
+          if (!v || !["critical", "high", "moderate", "low"].every((key) => typeof v[key] === "number")) {
+            console.error("Blocking staging deployment: production npm audit report has no valid vulnerability summary.");
+            process.exit(1);
+          }
           const summary = [
             "## Production dependency audit (dev tools excluded)",
             "",
-            `- Critical: ${v.critical ?? "unknown"}`,
-            `- High: ${v.high ?? "unknown"}`,
-            `- Moderate: ${v.moderate ?? "unknown"}`,
-            `- Low: ${v.low ?? "unknown"}`,
+            `- Critical: ${v.critical}`,
+            `- High: ${v.high}`,
+            `- Moderate: ${v.moderate}`,
+            `- Low: ${v.low}`,
             "",
             "Full npm audit JSON is attached to this workflow's build artifact."
           ].join("\n");
           console.log(summary);
           appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + "\n");
-          if ((v.critical ?? 0) > 0 || (v.high ?? 0) > 0) {
+          if (v.critical > 0 || v.high > 0) {
             console.error("Blocking staging deployment: production dependencies have critical or high npm audit findings.");
             process.exitCode = 1;
           }
