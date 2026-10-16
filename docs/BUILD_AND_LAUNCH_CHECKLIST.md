@@ -27,7 +27,8 @@
 - [ ] Verify every public and in-app link: sign in, create account, dashboard, lead desk, appointments, usage, settings, privacy, and terms.
 - [ ] Review product claims against the features actually enabled in the deployment; label preview/sample data clearly.
 - [ ] Add real support/privacy contact details and complete legal review before public launch.
-- [ ] Verify title, description, favicon, social preview, canonical URL, robots/sitemap, and 404 page.
+- [x] Add MiniStaff Open Graph/Twitter metadata, a custom SVG app icon, a robots policy, and a branded 404 page.
+- [ ] Verify canonical URL and final social preview against the real production hostname once the deployment target is selected.
 - [ ] Verify HTTPS, production domain/DNS, redirect behavior, and that the existing marketing/forms site is unchanged.
 
 ## 2. Login, signup, email verification & recovery
