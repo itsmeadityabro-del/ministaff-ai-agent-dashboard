@@ -49,7 +49,7 @@ const authPolicyCompiled = ts.transpileModule(authPolicySource, {
 }).outputText;
 const authPolicyExports = Object.create(null);
 vm.runInNewContext(authPolicyCompiled, { exports: authPolicyExports }, { timeout: 1000 });
-const { hasVerifiedEmail } = authPolicyExports;
+const { hasVerifiedEmail, hasWorkspaceAdminRole, hasWorkspaceMembership } = authPolicyExports;
 
 test("protected access requires a verified email timestamp", () => {
   assert.equal(hasVerifiedEmail(null), false);
@@ -58,6 +58,20 @@ test("protected access requires a verified email timestamp", () => {
   assert.equal(hasVerifiedEmail({ email_confirmed_at: null }), false);
   assert.equal(hasVerifiedEmail({ email_confirmed_at: "" }), false);
   assert.equal(hasVerifiedEmail({ email_confirmed_at: "2026-10-16T00:00:00Z" }), true);
+});
+
+test("workspace role checks reject missing and unknown roles by default", () => {
+  for (const role of [null, undefined, "", "owner", "superuser", "ADMIN"]) {
+    assert.equal(hasWorkspaceMembership(role), false, `unknown role must not be a member: ${String(role)}`);
+    assert.equal(hasWorkspaceAdminRole(role), false, `unknown role must not be admin: ${String(role)}`);
+  }
+});
+
+test("workspace membership accepts only known membership roles and admin checks stay strict", () => {
+  assert.equal(hasWorkspaceMembership("admin"), true);
+  assert.equal(hasWorkspaceMembership("member"), true);
+  assert.equal(hasWorkspaceAdminRole("admin"), true);
+  assert.equal(hasWorkspaceAdminRole("member"), false);
 });
 
 
