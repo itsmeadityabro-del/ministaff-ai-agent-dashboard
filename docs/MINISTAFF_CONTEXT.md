@@ -3,53 +3,63 @@
 Last updated: 2026-10-16 (Asia/Kolkata)
 
 ## Current objective
-Build MiniStaff AI from the existing Agent37 starter repo into a customer-ready multi-tenant dashboard for agents, lead intake, appointments, workspace/team controls, and provider-reported usage. Do not claim production-ready until authentication, tenant isolation, database migrations, live integrations, and production checks have passed.
+Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, lead intake, appointments, team workspaces, and provider-reported usage. Do not claim production-ready until auth, workspace isolation, live integrations, and release checks pass.
 
 ## Repository safety
-- Repository: `itsmeadityabro-del/ministaff-ai-agent-dashboard`
-- Working branch: `build/ministaff-from-scratch`
-- Latest code commit currently deployed to staging: `c718f43c78bdb6b65783e764eb645652b9d4b208`
-- Latest documentation/checklist commit: `0f6476c47d14b21cd46ea0a8cf4f5883193c619f`
-- Keep `main` and `feature/ministaff-sales-desk` unchanged unless the user explicitly authorizes changes there.
-- Preserve the existing Cloudflare Pages site `ministaff-ai.pages.dev` and Worker `ministaff-forms`.
-- Do not use Remote Desktop Commander for MiniStaff tasks unless the user explicitly requests it in the current turn.
+- Repository: itsmeadityabro-del/ministaff-ai-agent-dashboard
+- Working branch: build/ministaff-from-scratch
+- Latest relevant app source commit deployed to staging: 6f522e7f8ccc5ae048c0296771d26358f6d3e42c
+- Latest successful ordinary CI on docs/env example commit: 38884159683 (head c4bf46d00b78b8c2dca5aa70fac063986ef247c6)
+- Keep main and feature/ministaff-sales-desk unchanged unless the user explicitly authorizes changes there.
+- Preserve the existing Cloudflare Pages site ministaff-ai.pages.dev and Worker ministaff-forms.
+- Do not use Remote Desktop Commander for MiniStaff unless explicitly requested in the current turn.
 
-## Verified deployment and CI
-- Cloudflare repository secret `CLOUDFLARE_API_TOKEN` has been configured by the user; never expose or ask for the raw token.
-- Staging Worker: `ministaff-ai-dashboard-staging`
+## Verified Cloudflare staging
+- GitHub repository secret CLOUDFLARE_API_TOKEN is configured. Never expose or ask for the raw token.
+- Staging Worker: ministaff-ai-dashboard-staging
 - Staging URL: https://ministaff-ai-dashboard-staging.itsmeadityabro.workers.dev
-- Live `/api/health` response verified as `{"ok":true,"service":"ministaff-ai"}`.
-- Worker build + deploy + health check passed: https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38881986997
-- Standard CI (typecheck, security regression tests, production build) passed for code commit `c718f43c78bdb6b65783e764eb645652b9d4b208`: https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38881986547
-- Health workflow has retries and diagnostics; a first probe briefly returned HTTP 500 then the retry passed.
-- Public routes and health do not instantiate a Supabase client when public Supabase config is missing; protected routes still redirect to login. This is a bootstrap safeguard, not proof that auth works.
-- Checklist: `docs/BUILD_AND_LAUNCH_CHECKLIST.md`; update it and this context record at each substantive project turn.
+- Latest successful Worker build/deploy/public-Supabase-bindings/health-check run: https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884117058
+- Latest successful normal CI (typecheck, security regression tests, Next build): https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884159683
+- Health endpoint is verified with {"ok":true,"service":"ministaff-ai"}.
+- The Worker workflow now builds with the Supabase URL and publishable key; after deployment it syncs the URL and publishable key as Worker secrets. The privileged runtime key step is intentionally pending until SUPABASE_SECRET_KEY exists as a GitHub repository secret.
+- This is staging, not production. No live sign-up, confirmation email, login, data writes, Agent37 or tenant-isolation end-to-end test has passed yet.
 
-## Stack and code status
-- Next.js-based app built for Cloudflare Workers with vinext.
-- Supabase Auth/Postgres/storage is the intended data/auth layer; migrations exist at `supabase/migrations/0001_init.sql` through `0004_lead_job_worker.sql`.
-- Agent37 integration code uses server-only `AGENT37_API_KEY`; key is not configured or live-tested yet.
-- Implemented in code: branded public homepage, login/signup/reset UI, workspace/membership controls, Agent37 client, leads/appointments API/UI, inbound lead webhook foundation, durable idempotent lead-job schema, opt-in triage worker code, and provider-usage UI.
-- Not yet verified live: email confirmation and recovery, user/session lifecycle, workspace tenant isolation, applying DB migrations, actual lead webhook processing, appointments, quotas (UI usage is not authoritative server-side quota enforcement), Agent37 provisioning/chat, secrets/configuration, production domain and release.
-- Dependency audit previously showed no production vulnerabilities, but 7 high findings in dev/build tooling remain; toolchain upgrade remediation needs compatibility testing.
+## Fresh Supabase project — created and migrated
+- Organization: JARVIS (organization ID ivzdyqrywuvowkmvaxdr)
+- Project name: ministaff-ai
+- Project ref: qgxjjvhzggepfurjtpyd
+- Project URL: https://qgxjjvhzggepfurjtpyd.supabase.co
+- Region: ap-south-1 (Mumbai, India)
+- Status: ACTIVE_HEALTHY; all listed services reported healthy.
+- This is a new, dedicated MiniStaff project. Neither older inactive project was modified.
+- All four migrations from supabase/migrations were applied in order and migration history confirmed them:
+  1. 0001_init — version 20261016095558
+  2. 0002_ministaff_sales_desk — version 20261016095609
+  3. 0003_lead_webhooks_and_jobs — version 20261016095616
+  4. 0004_lead_job_worker — version 20261016095623
+- Verified inventory: 8 public tables (agents, appointments, invitations, lead_jobs, lead_webhook_keys, leads, memberships, workspaces), all 8 have RLS enabled, 15 policies, and the expected workspace/invitation functions. Tables are empty as expected for a new project.
+- Do not reapply these migrations blindly. Check remote migration history before any subsequent schema change.
 
-## Supabase blocker — do not write to either project yet
-Read-only Composio inventory identified organization `JARVIS` (`ivzdyqrywuvowkmvaxdr`) with two projects in `ap-southeast-2`, both status `INACTIVE`:
-1. `itsmeadityabro-del's Project`, ref `fmiouvgarbktkqsubruq`, created 2026-03-28.
-2. `Clawhelm`, ref `fzwnybjmbjslftmaetaf`, created 2026-04-07.
-- Both returned “No active services available”; migration-history calls timed out. Existing schemas/data cannot currently be verified.
-- Neither project has been modified.
-- Next essential user decision: resume the generic personal project, resume Clawhelm, or create a separate clean MiniStaff project. Do not assume Clawhelm belongs to MiniStaff and do not apply SQL until this is decided.
-- Supabase's dashboard restore flow for a paused project is Dashboard → organization → project → **Resume project**. Projects paused for more than one year may need backup recovery into a new project instead:
-  - https://supabase.com/docs/guides/platform/free-project-pausing
-  - https://supabase.com/docs/guides/troubleshooting/restore-project-after-90-days-pause
+## Supabase keys and remaining manual credential step
+- Stored in GitHub Actions Secrets: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY (legacy compatibility), and SUPABASE_DB_PASSWORD.
+- The Cloudflare workflow successfully synced NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY to the staging Worker.
+- REQUIRED manual action: add the current Supabase secret API key to GitHub Actions Secrets with the exact name SUPABASE_SECRET_KEY. Use the project dashboard Settings → API Keys → Secret keys → default key: https://supabase.com/dashboard/project/qgxjjvhzggepfurjtpyd/settings/api-keys . Copy the secret key directly from Supabase into GitHub's secret field. Never paste it into chat, commit it, or expose it to client code.
+- After SUPABASE_SECRET_KEY is added, manually dispatch the Cloudflare Worker workflow (or tell the assistant “secret added” so it can dispatch it). The workflow syncs it to Cloudflare as the server-only SUPABASE_SECRET_KEY. Until then, the admin client and server-side data operations remain unconfigured.
+- Application code prefers the current Supabase publishable key on client/session clients, while retaining NEXT_PUBLIC_SUPABASE_ANON_KEY as a legacy fallback. The server-only admin client prefers SUPABASE_SECRET_KEY, with SUPABASE_SERVICE_ROLE_KEY as a migration fallback.
+- Do not disable or revoke any current Supabase keys during this migration.
+- Agent37 API key and the lead queue cron secret have not been configured.
 
-## Secrets policy
-- Never paste API keys, tokens, service-role keys, passwords, or webhook secrets into chat or commit them to Git.
-- User should add credentials directly to the target platform's secret manager.
-- `CLOUDFLARE_API_TOKEN` is already stored in GitHub Actions Secrets.
-- Supabase public URL/anon key and server-only service role key are not yet configured on the Worker.
-- `AGENT37_API_KEY` and a cron secret are not yet configured on the Worker.
+## Code already present
+- Branded public homepage, signup/signin/password-reset UI, callback and invitation paths.
+- Workspace/membership checks and a server-side Supabase admin client.
+- Agent37 client, agent lifecycle and usage UI.
+- Leads and appointment APIs/UI, inbound lead webhook foundation, durable idempotent job schema, opt-in lead triage worker.
+- Provider-reported usage display, but no authoritative monthly quota enforcement yet.
+- Production dependency audit previously reported no production dependencies with critical/high vulnerabilities; 7 high findings remain in development/build tooling and should be remediated with compatibility retesting.
 
 ## Immediate next action
-Ask the user to choose one Supabase path: (A) resume `itsmeadityabro-del's Project`; (B) resume `Clawhelm`; or (C) create a clean new MiniStaff project. Once chosen, restore/activate it, inspect project metadata and migration history, verify existing tables and data, then apply migrations carefully and configure the Worker environment. Continue to update this file and the build checklist whenever the status changes.
+1. User adds SUPABASE_SECRET_KEY directly in GitHub Settings → Secrets and variables → Actions.
+2. Rerun the staging Worker workflow and confirm the secret sync/health check.
+3. Run live signup, email-verification, callback, login/logout, password-recovery, workspace-creation, authorization, and workspace-isolation tests.
+4. Then configure Agent37 as a server-side secret, check wallet/billing status, and test only a budget-approved test instance.
+5. Continue updating this file and docs/BUILD_AND_LAUNCH_CHECKLIST.md at every substantive project turn.
