@@ -15,6 +15,10 @@ function callbackUrl(next: string) {
 
 export function AuthMethods() {
   const [phoneMode, setPhoneMode] = useState(false);
+  const [emailMode, setEmailMode] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailOtp, setEmailOtp] = useState("");
+  const [emailOtpSent, setEmailOtpSent] = useState(false);
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -31,6 +35,43 @@ export function AuthMethods() {
       setBusy(false);
       toast.error(error.message);
     }
+  }
+
+  async function sendEmailOtp(e: React.FormEvent) {
+    e.preventDefault();
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(normalizedEmail)) {
+      toast.error("Enter a valid email address.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await createClient().auth.signInWithOtp({
+      email: normalizedEmail,
+      options: { shouldCreateUser: true },
+    });
+    setBusy(false);
+    if (error) return toast.error("Could not send an email code. Check email Auth and SMTP settings.");
+    setEmail(normalizedEmail);
+    setEmailOtpSent(true);
+    toast.success("If email OTP is configured, a verification code has been sent.");
+  }
+
+  async function verifyEmailOtp(e: React.FormEvent) {
+    e.preventDefault();
+    if (!/^\\d{6,8}$/.test(emailOtp.trim())) {
+      toast.error("Enter the verification code from your email.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await createClient().auth.verifyOtp({
+      email: email.trim().toLowerCase(),
+      token: emailOtp.trim(),
+      type: "email",
+    });
+    setBusy(false);
+    if (error) return toast.error("That email code is invalid or expired. Request a new one.");
+    const next = safeNextPath(new URLSearchParams(window.location.search).get("next"));
+    window.location.href = next;
   }
 
   async function sendOtp(e: React.FormEvent) {
@@ -82,7 +123,7 @@ export function AuthMethods() {
         <span className="h-px flex-1 bg-border" />
       </div>
       {!phoneMode ? (
-        <Button type="button" variant="outline" className="w-full" onClick={() => setPhoneMode(true)}>
+        <Button type="button" variant="outline" className="w-full" onClick={() => { setPhoneMode(true); setEmailMode(false); }}>
           Continue with SMS verification
         </Button>
       ) : (
