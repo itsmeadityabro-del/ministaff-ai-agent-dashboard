@@ -58,3 +58,44 @@ test("protected access requires a verified email timestamp", () => {
   assert.equal(hasVerifiedEmail({ email_confirmed_at: "" }), false);
   assert.equal(hasVerifiedEmail({ email_confirmed_at: "2026-10-16T00:00:00Z" }), true);
 });
+
+
+const usagePeriodSource = readFileSync(new URL("../src/lib/usage-period.ts", import.meta.url), "utf8");
+const usagePeriodCompiled = ts.transpileModule(usagePeriodSource, {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+}).outputText;
+const usagePeriodExports = Object.create(null);
+vm.runInNewContext(usagePeriodCompiled, { exports: usagePeriodExports, Date }, { timeout: 1000 });
+const { resolveUsageMonth } = usagePeriodExports;
+
+test("usage periods accept current and historical YYYY-MM values", () => {
+  const now = new Date("2026-10-16T00:00:00.000Z");
+  const current = resolveUsageMonth("2026-10", now);
+  assert.equal(current.ok, true);
+  assert.equal(current.month, "2026-10");
+
+  const historical = resolveUsageMonth("2025-01", now);
+  assert.equal(historical.ok, true);
+  assert.equal(historical.month, "2025-01");
+
+  const omitted = resolveUsageMonth(null, now);
+  assert.equal(omitted.ok, true);
+  assert.equal(omitted.month, undefined);
+
+  const empty = resolveUsageMonth("", now);
+  assert.equal(empty.ok, true);
+  assert.equal(empty.month, undefined);
+});
+
+test("usage periods reject malformed, impossible, and future months", () => {
+  const now = new Date("2026-10-16T00:00:00.000Z");
+  for (const value of ["2026-1", "2026-00", "2026-13", "2026/10", "October 2026", "2026-10-01"]) {
+    const result = resolveUsageMonth(value, now);
+    assert.equal(result.ok, false, "should reject " + value);
+    assert.equal(result.code, "invalid_month");
+  }
+
+  const future = resolveUsageMonth("2026-11", now);
+  assert.equal(future.ok, false);
+  assert.equal(future.code, "future_month");
+});
