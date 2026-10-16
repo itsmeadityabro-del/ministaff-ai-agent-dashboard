@@ -202,6 +202,34 @@ jobs:
           printf '%s' "$AGENT37_API_KEY" | npx --yes wrangler@4 secret put AGENT37_API_KEY --name ministaff-ai-dashboard-staging
           echo "Agent37 API key was synced to the staging Worker as a server-only secret."
 
+      - name: Verify Agent37 credential using a read-only endpoint
+        if: success() && steps.config-state.outputs.configured == 'true' && env.HAS_AGENT37_API_KEY == 'true'
+        shell: bash
+        env:
+          AGENT37_API_KEY: ${{ secrets.AGENT37_API_KEY }}
+        run: |
+          set -euo pipefail
+          response_file="$(mktemp)"
+          status_code="$(curl --silent --show-error --max-time 15 --output "$response_file" --write-out '%{http_code}' \
+            -H "Authorization: Bearer $AGENT37_API_KEY" \
+            -H "Accept: application/json" \
+            https://api.agent37.com/v1/instances || true)"
+          if [ "$status_code" != "200" ]; then
+            echo "Agent37 read-only credential check failed with HTTP ${status_code:-no-status}; response body intentionally suppressed."
+            exit 1
+          fi
+          node --input-type=module - "$response_file" <<'NODE'
+          import { readFileSync } from "node:fs";
+          const payload = JSON.parse(readFileSync(process.argv[2], "utf8"));
+          if (!payload || !Array.isArray(payload.data)) {
+            console.error("Agent37 returned an unexpected payload shape; body suppressed.");
+            process.exit(1);
+          }
+          console.log("Agent37 credential verified using the read-only instances endpoint. No agent was created.");
+          NODE
+          echo "## Agent37 read-only credential check passed" >> "$GITHUB_STEP_SUMMARY"
+          echo "The API key authenticated on GET /v1/instances. This check did not provision an agent or incur agent runtime usage." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Report missing Agent37 server key
         if: success() && steps.config-state.outputs.configured == 'true' && env.HAS_CF_TOKEN == 'true' && env.HAS_AGENT37_API_KEY != 'true'
         run: |
