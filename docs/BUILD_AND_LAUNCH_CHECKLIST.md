@@ -25,6 +25,11 @@
 
 ## 1. Product and website
 
+## Active auth follow-up
+
+- [ ] SMTP setup is now the active workstream. Supabase Auth is healthy, signup is enabled, email confirmation remains required, staging URL/redirects and 8-character minimum are configured; SMTP host/port/credentials/sender are blank. Choose a controlled sender domain or use the default SMTP only for restricted internal testing before attempting real signup emails.
+
+
 - [x] Add a MiniStaff-branded public homepage with clear product areas and links to sign in and create an account.
 - [x] Add signup-mode query handling so homepage account-creation links land on the signup form.
 - [ ] Review all dashboard pages for MiniStaff branding; remove leftover starter-kit labels, logos, demos, and copy.
