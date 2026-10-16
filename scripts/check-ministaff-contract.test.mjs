@@ -29,3 +29,12 @@ test("workflow migration enables RLS, denies browser table access, and protects 
   assert.match(sql, /revoke all on public\.leads, public\.appointments from anon, authenticated/i);
   assert.match(sql, /appointments_no_scheduled_overlap/i);
 });
+
+
+test("customer API cannot create or delete a subscription-managed Agent37 instance", async () => {
+  const collection = await read("../src/app/api/agents/route.ts");
+  const item = await read("../src/app/api/agents/[id]/route.ts");
+  assert.match(collection, /additional_agents_disabled/);
+  assert.match(item, /managed_agent_protected/);
+  assert.doesNotMatch(item, /agent37\.deleteAgent\(/);
+});
