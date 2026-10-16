@@ -75,3 +75,10 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 4. Run live signup, email verification, callback, sign-in/out, password-recovery, workspace creation, permissions, and tenant-isolation tests.
 5. Then configure Agent37 as a server-side secret, check wallet/billing status, and test only a budget-approved test instance.
 6. Continue updating this file and docs/BUILD_AND_LAUNCH_CHECKLIST.md at every substantive project turn.
+
+
+## DigitalPlat registration checkpoint — 2026-10-16
+- With the user's explicit request, used the connected Windows browser to navigate to DigitalPlat One > Domains > Register Domain. The live page shows 1 free domain slot available, 0 paid slots, and 0 plan slots; it requires policy acknowledgements before proceeding.
+- The dashboard notice says new registrations under .US.KG and .XX.KG are temporarily paused for accounts below Power; higher plans are unaffected. Do not assume either suffix is available to this account. Verify current suffix rules and name availability in the authenticated registration UI.
+- The page's displayed account profile label does not match the known ChatGPT profile. **Registration is on hold** until the user confirms this is the correct account they are authorized to manage and under which MiniStaff should own the domain.
+- No terms were accepted, no registration was submitted, no domain was purchased, and no DNS changes were made. Candidate `ministaff.dpdns.org` remains unverified and unregistered.
