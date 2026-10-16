@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - feature/ministaff-sales-desk
+      - build/ministaff-from-scratch
   pull_request:
     branches:
       - main
