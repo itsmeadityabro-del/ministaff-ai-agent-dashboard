@@ -47,7 +47,7 @@ Last reviewed: 2026-10-16 (Asia/Kolkata). This is the canonical dashboard/workfl
 ## Usage, plan limits, billing
 
 - [ ] **CODED — Usage accuracy:** dashboard maps Agent37 spend, input/output tokens, and call counts; compare displayed values against the live provider for the same period.
-- [ ] **CODED — Plan enforcement:** activation Worker assigns provider-side plan budgets; dashboard budget writes are capped at $5/$10/$25 per Plus/Pro/Max tier and customer resizing is disabled. Verify actual provider caps, plan mapping, and entitlement changes in staging; a dashboard meter alone does not enforce spending limits.
+- [ ] **CODED — Plan enforcement:** activation Worker assigns provider-side plan budgets; dashboard budget writes are capped at $0/$10/$25 per Plus/Pro/Max tier (Plus retains its separate one-time $1 starter credit) and customer resizing is disabled. Verify actual provider caps, plan mapping, and entitlement changes in staging; a dashboard meter alone does not enforce spending limits.
 - [ ] **TODO — BYOK accounting:** confirm external subscription/API use is not falsely represented as Agent37 managed spend.
 - [ ] **BLOCKED — Gumroad flow:** Plus/Pro/Max checkout, valid/invalid/refunded/cancelled license, activation, idempotency, provisioning and cancellation with an approved test purchase. Worker-specific steps are tracked in the [website/Worker release checklist](https://github.com/itsmeadityabro-del/ministaff-ai-website/blob/codex/ministaff-e2e-checklists/docs/WORKER_RELEASE_CHECKLIST.md).
 
