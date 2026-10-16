@@ -189,7 +189,7 @@ export function useFileBrowser(agentId: string, canWrite = true) {
         toast.error((e as Error).message || "Couldn't rename that.");
       }
     },
-    [agentId, path, load]
+    [agentId, path, load, canWrite]
   );
 
   const remove = useCallback(
@@ -203,7 +203,7 @@ export function useFileBrowser(agentId: string, canWrite = true) {
         toast.error((e as Error).message || "Couldn't delete that.");
       }
     },
-    [agentId, path, load]
+    [agentId, path, load, canWrite]
   );
 
   // Whole-pane drag-drop overlay.
