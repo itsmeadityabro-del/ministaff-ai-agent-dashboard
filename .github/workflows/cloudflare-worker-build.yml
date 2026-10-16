@@ -75,6 +75,30 @@ jobs:
           appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + "\n");
           NODE
 
+      - name: Audit production dependencies separately
+        shell: bash
+        run: |
+          npm audit --omit=dev --json > "$RUNNER_TEMP/npm-audit-production-report.json" || true
+          cp "$RUNNER_TEMP/npm-audit-production-report.json" npm-audit-production-report.json
+          node --input-type=module <<'NODE'
+          import { appendFileSync, readFileSync } from "node:fs";
+          let report = {};
+          try { report = JSON.parse(readFileSync("npm-audit-production-report.json", "utf8")); } catch {}
+          const v = report.metadata?.vulnerabilities ?? {};
+          const summary = [
+            "## Production dependency audit (dev tools excluded)",
+            "",
+            `- Critical: ${v.critical ?? "unknown"}`,
+            `- High: ${v.high ?? "unknown"}`,
+            `- Moderate: ${v.moderate ?? "unknown"}`,
+            `- Low: ${v.low ?? "unknown"}`,
+            "",
+            "Full npm audit JSON is attached to this workflow's build artifact."
+          ].join("\\n");
+          console.log(summary);
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + "\\n");
+          NODE
+
       - name: Detect persisted Cloudflare configuration
         id: config-state
         shell: bash
@@ -126,6 +150,7 @@ jobs:
             package.json
             package-lock.json
             npm-audit-report.json
+            npm-audit-production-report.json
 
       - name: Deploy dedicated staging Worker
         if: success() && steps.config-state.outputs.configured == 'true' && env.HAS_CF_TOKEN == 'true'
