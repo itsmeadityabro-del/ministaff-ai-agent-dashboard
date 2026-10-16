@@ -6,8 +6,8 @@ Last reviewed: 2026-10-16 (Asia/Kolkata). This is the canonical dashboard/workfl
 
 ## Verified evidence on the GitHub branch
 
-- [x] GitHub Actions CI passed on commit 2a7a7f1c3c9d41b1c74c38cbb7acdbf959cd477e on 2026-10-16: npm ci, npm test, npm run typecheck, and npm run build. [Workflow run](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38932462090).
-- [x] Non-billable Node unit/contract tests passed in the same CI run.
+- [x] GitHub Actions CI passed on commit c0520a3425a6b65aafc5424243e95d422a7832d on 2026-10-16: npm ci, npm test, npm run typecheck, and npm run build. [Workflow run](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38934557358).
+- [x] Non-billable Node unit/contract tests passed in the same CI run, including a regression check that the customer API cannot create or delete a subscription-managed Agent37 instance.
 - [x] Source and Cloudflare metadata reviewed on 2026-10-16.
 - [ ] Cloudflare staging build matches the reviewed GitHub commit; no deployment has been verified from this branch.
 - [ ] Supabase staging migrations and customer end-to-end tests.
