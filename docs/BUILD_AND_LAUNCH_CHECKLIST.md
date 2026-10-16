@@ -188,6 +188,6 @@ Fill these fields in only after observing the actual deployment:
 
 ## 13. Progress snapshot — 2026-10-16
 - **Estimated engineering foundation/infrastructure: 65–70% complete.** Main application scaffolding and major feature foundations exist; CI is green; dedicated Cloudflare staging Worker is deployed/health-checked; Supabase is healthy with 4 migrations applied, all 8 public tables RLS-enabled; server-only Supabase key sync passed.
-- **Estimated launch readiness: 30–35%.** A checklist count is not an exact product-completeness metric: 38 of 123 individual checkboxes were checked before this snapshot. Many launch-blocking live tests remain open.
+- **Estimated launch readiness: 30–35%.** Current tally: 40 of 123 individual checkboxes are checked (about 33%). This is not an exact product-completeness metric because many boxes are live acceptance tests. Many launch-blocking live tests remain open.
 - Domain purchase is deferred by the user. Use the existing `workers.dev` staging URL for development. Do not treat `ministaff.dpdns.org` as registered or live; its Cloudflare zone is pending and separate from a future purchased .IN domain.
 - Next work: auth/email delivery end-to-end; two-account/two-workspace permission and isolation tests; Agent37 server-side secret and budget-aware smoke test; webhook/idempotency/queue and appointment tests; authoritative server-side quota/cost protections; then responsive/accessibility, monitoring/backups, legal/support, production DNS/deploy, and rollback testing.
