@@ -27,6 +27,7 @@ export function MembersView() {
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [role, setRole] = useState<Role>("admin");
+  const [inviteRole, setInviteRole] = useState<Role>("member");
   const [loading, setLoading] = useState(true);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -64,10 +65,12 @@ export function MembersView() {
     try {
       const { url } = await apiFetch<{ url: string }>(`/api/workspaces/${current.id}/members`, {
         method: "POST",
+        body: JSON.stringify({ role: inviteRole }),
       });
       await navigator.clipboard.writeText(url).catch(() => {});
       toast.success("Invite link created and copied");
       setInviteOpen(false);
+      setInviteRole("member");
       load();
     } catch (e) {
       toast.error((e as Error).message);
@@ -118,10 +121,24 @@ export function MembersView() {
               <DialogHeader>
                 <DialogTitle>Invite member</DialogTitle>
                 <DialogDescription>
-                  Create an invite link and share it. Anyone who opens it joins this workspace as an
-                  admin.
+                  Create a seven-day invite link. Give admin access only to people who need to manage
+                  workspace settings and agents.
                 </DialogDescription>
               </DialogHeader>
+              <div className="space-y-2">
+                <label htmlFor="invite-role" className="text-sm font-medium">Invite as</label>
+                <select
+                  id="invite-role"
+                  aria-label="Invitation role"
+                  value={inviteRole}
+                  onChange={(event) => setInviteRole(event.target.value as Role)}
+                  disabled={busy}
+                  className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+                >
+                  <option value="member">Member — view workspace data</option>
+                  <option value="admin">Admin — manage workspace and agents</option>
+                </select>
+              </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setInviteOpen(false)} disabled={busy}>
                   Cancel
@@ -154,7 +171,7 @@ export function MembersView() {
                   <tr key={m.user_id} className="border-t">
                     <td className="px-4 py-3 font-medium">{m.email}</td>
                     <td className="px-4 py-3">
-                      <Badge>Admin</Badge>
+                      <Badge>{m.role === "admin" ? "Admin" : "Member"}</Badge>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{formatDate(m.created_at)}</td>
                     <td className="px-4 py-3 text-right">
@@ -208,7 +225,7 @@ export function MembersView() {
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Created {formatDate(inv.created_at)} · anyone with this link joins as an admin
+                      Created {formatDate(inv.created_at)} · joins as {inv.role === "admin" ? "admin" : "member"} · expires {formatDate(inv.expires_at)}
                     </p>
                   </div>
                 ))}
