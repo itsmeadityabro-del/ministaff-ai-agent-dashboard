@@ -33,6 +33,7 @@ const temperatureVariant = (temperature: LeadTemperature) =>
 
 export function LeadPipelineView() {
   const { current } = useWorkspace();
+  const isAdmin = current?.role === "admin";
   const [leads, setLeads] = useState<Lead[]>([]);
   const [jobs, setJobs] = useState<LeadJob[]>([]);
   const [loading, setLoading] = useState(true);
@@ -112,7 +113,7 @@ export function LeadPipelineView() {
         <Metric label="Hot leads" value={String(hotCount)} detail="Prioritise follow-up" />
         <Metric label="Qualified" value={String(qualifiedCount)} detail={`${bookedCount} booked so far`} />
       </div>
-      <LeadWebhookCard />
+      {isAdmin && <LeadWebhookCard />}
 
       <section className="overflow-hidden rounded-xl border bg-card">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
@@ -146,13 +147,14 @@ export function LeadPipelineView() {
                 <tbody>{filtered.map((lead) => <tr key={lead.id} className="border-t">
                   <td className="px-4 py-3"><div className="font-medium">{lead.name}</div><div className="text-xs text-muted-foreground">{lead.company || lead.email || lead.phone || "Contact details not provided"}</div></td>
                   <td className="px-4 py-3 text-muted-foreground">{lead.source || "manual"}</td>
-                  <td className="px-4 py-3"><select aria-label={`Priority for ${lead.name}`} value={lead.temperature} onChange={(event) => void updateLead(lead.id, { temperature: event.target.value as LeadTemperature })} className="h-8 rounded-md border bg-background px-2 text-xs"><option value="hot">Hot</option><option value="warm">Warm</option><option value="cold">Cold</option></select><div className="mt-1"><Badge variant={temperatureVariant(lead.temperature)}>{lead.temperature}</Badge></div></td>
-                  <td className="px-4 py-3"><select aria-label={`Status for ${lead.name}`} value={lead.status} onChange={(event) => void updateLead(lead.id, { status: event.target.value as LeadStatus })} className="h-8 rounded-md border bg-background px-2 text-xs"><option value="new">New</option><option value="qualified">Qualified</option><option value="contacted">Contacted</option><option value="booked">Booked</option><option value="lost">Lost</option></select><div className="mt-1"><Badge variant={statusVariant(lead.status)}>{lead.status}</Badge></div></td>
+                  <td className="px-4 py-3"><select aria-label={`Priority for ${lead.name}`} value={lead.temperature} disabled={!isAdmin} onChange={(event) => void updateLead(lead.id, { temperature: event.target.value as LeadTemperature })} className="h-8 rounded-md border bg-background px-2 text-xs"><option value="hot">Hot</option><option value="warm">Warm</option><option value="cold">Cold</option></select><div className="mt-1"><Badge variant={temperatureVariant(lead.temperature)}>{lead.temperature}</Badge></div></td>
+                  <td className="px-4 py-3"><select aria-label={`Status for ${lead.name}`} value={lead.status} disabled={!isAdmin} onChange={(event) => void updateLead(lead.id, { status: event.target.value as LeadStatus })} className="h-8 rounded-md border bg-background px-2 text-xs"><option value="new">New</option><option value="qualified">Qualified</option><option value="contacted">Contacted</option><option value="booked">Booked</option><option value="lost">Lost</option></select><div className="mt-1"><Badge variant={statusVariant(lead.status)}>{lead.status}</Badge></div></td>
                 </tr>)}</tbody>
               </table></div>
             )}
           </div>
         </section>
+        {isAdmin ? (
         <aside className="h-fit rounded-xl border bg-card p-4">
           <div className="mb-4 flex items-center gap-2"><div className="rounded-lg bg-primary/10 p-2 text-primary"><UserPlus className="h-4 w-4" /></div><div><h2 className="font-semibold">Add a lead</h2><p className="text-xs text-muted-foreground">Save an enquiry to this workspace</p></div></div>
           <form onSubmit={createLead} className="space-y-3">
@@ -166,6 +168,12 @@ export function LeadPipelineView() {
             <p className="text-xs text-muted-foreground">AI qualification and automatic channel capture are separate integrations; this form records a lead only.</p>
           </form>
         </aside>
+        ) : (
+          <aside className="h-fit rounded-xl border bg-card p-4">
+            <h2 className="font-semibold">Read-only access</h2>
+            <p className="mt-2 text-sm text-muted-foreground">Members can view and filter leads. An admin is required to add leads or change their status and priority.</p>
+          </aside>
+        )}
       </div>
     </div>
   );
