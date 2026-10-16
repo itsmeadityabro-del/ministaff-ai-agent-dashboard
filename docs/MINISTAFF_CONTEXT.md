@@ -8,8 +8,8 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 ## Repository safety
 - Repository: itsmeadityabro-del/ministaff-ai-agent-dashboard
 - Working branch: build/ministaff-from-scratch
-- Latest verified staging deploy run: [38887168927](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38887168927) succeeded on branch `build/ministaff-from-scratch`; the server-only Supabase key sync step and staging health probe both passed. Build head was `99abee47829c6cad64b5c73b32592662c619ce28`.
-- Latest successful ordinary CI: [38886945020](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38886945020) on commit `99abee47829c6cad64b5c73b32592662c619ce28`.
+- Latest verified staging deploy run: [38887168927](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38887168927) succeeded on branch `build/ministaff-from-scratch`; server-only Supabase key sync and staging health probe both passed.
+- Latest successful ordinary CI: [38892741258](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38892741258) on current branch head `be5beae1363ed9c55598e432ee9eae004870d975` (TypeScript typecheck, security regression tests, production build).
 - Keep main and feature/ministaff-sales-desk unchanged unless the user explicitly authorizes changes there.
 - Preserve the existing Cloudflare Pages site ministaff-ai.pages.dev and Worker ministaff-forms.
 - Do not use Remote Desktop Commander for MiniStaff unless explicitly requested in the current turn.
@@ -43,13 +43,11 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 - Do not reapply these migrations blindly. Check remote migration history before any subsequent schema change.
 
 ## Supabase keys and remaining manual credential step
-- Verified GitHub Actions secret names currently present: `CLOUDFLARE_API_TOKEN`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (legacy compatibility), `SUPABASE_DB_PASSWORD`, and `SUPABASE`. The newly added `SUPABASE` name is not read by the workflow: both `SUPABASE_SECRET_KEY` and legacy `SUPABASE_SERVICE_ROLE_KEY` are still absent.
-- The Cloudflare workflow synced public Supabase settings and the server-only key to the staging Worker on run [38887168927](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38887168927); the server-key step no longer skips.
-- REQUIRED manual action remains: add the existing value again as a GitHub Actions secret named exactly `SUPABASE_SECRET_KEY`. `SUPABASE` is not an alias, so the workflow cannot read it under the required name. Use the Supabase project's Settings → API Keys → Secret keys page: https://supabase.com/dashboard/project/qgxjjvhzggepfurjtpyd/settings/api-keys . Never paste the value into chat, commit it, or expose it to client code; the existing `SUPABASE` entry may remain for now.
-- After the correctly named `SUPABASE_SECRET_KEY` exists, verify its name and dispatch the Cloudflare Worker workflow. Do not dispatch yet: with only `SUPABASE` present, the privileged sync step will be skipped. Until the expected key name exists, admin-backed data operations remain unconfigured.
-- Application code prefers the current Supabase publishable key on client/session clients, while retaining NEXT_PUBLIC_SUPABASE_ANON_KEY as a legacy fallback. The server-only admin client prefers SUPABASE_SECRET_KEY, with SUPABASE_SERVICE_ROLE_KEY as a migration fallback.
-- Do not disable or revoke any current Supabase keys during this migration.
-- Agent37 API key and the lead queue cron secret have not been configured.
+- GitHub Actions secret `SUPABASE_SECRET_KEY` is now configured under the exact name expected by the workflow. The latest successful staging workflow [38887168927](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38887168927) passed the server-only Supabase key sync step and the staging health check.
+- A mistakenly named `SUPABASE` secret may remain; the workflow does not use it. Do not print secret values, paste them into chat, commit them, or expose them to client code.
+- The staging Worker has the Supabase URL and public key runtime settings plus a server-only admin secret synced. This is necessary infrastructure but does **not** prove login, signup, data access, or tenant isolation work end to end.
+- Agent37 API key and the lead queue cron secret have not been configured. Add `AGENT37_API_KEY` as a server-side GitHub Actions/Worker secret only when ready for a budget-aware test. Keep the cron worker disabled until its secret, staging test workspace, and queue tests are ready.
+- Do not disable or revoke any current Supabase keys during the migration.
 
 ## Code already present
 - Branded public homepage, signup/signin/password-reset UI, callback and invitation paths.
@@ -68,30 +66,10 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 ## Current auth workstream
 - Current active workstream: email delivery and authentication. Supabase Auth service was rechecked on 2026-10-16 and is ACTIVE_HEALTHY; email/password signup is enabled, email auto-confirm is disabled, the staging site URL and redirect allowlist are configured, and password minimum is 8. SMTP host/port/username/password/sender are still unset. Next dependency: user must choose a sender domain they control (or use limited internal-only default-SMTP testing) before configuring delivery; never request credentials in chat.
 
-## Immediate next action
-1. Complete DigitalPlat dashboard availability/policy check for proposed `ministaff.dpdns.org`; do not claim registration until confirmed in Domain List.
-2. Prepare a DNS zone at the connected Cloudflare account and use the exact assigned nameservers during registration/delegation, after confirming the suffix's current rules and any displayed charge.
-3. Configure trusted SMTP/email sending after domain/DNS ownership and required email DNS records are verified.
-4. Run live signup, email verification, callback, sign-in/out, password-recovery, workspace creation, permissions, and tenant-isolation tests.
-5. Then configure Agent37 as a server-side secret, check wallet/billing status, and test only a budget-approved test instance.
-6. Continue updating this file and docs/BUILD_AND_LAUNCH_CHECKLIST.md at every substantive project turn.
-
-
-## DigitalPlat registration checkpoint — 2026-10-16
-- User replied "approved complete setup" after the request for parent/legal-guardian consent. The account label in DigitalPlat is "Sudeep Sahu"; the user previously confirmed this is the account they want to manage for MiniStaff.
-- The live DigitalPlat registration form confirmed `ministaff.dpdns.org` is available for a **free slot**. The account showed 1 free slot available, 0 paid slots, and 0 plan slots. `.qzz.io` consumes a paid slot; the UI's prior notice said new `.US.KG` and `.XX.KG` registrations are paused for accounts below Power. Do not use a paid option.
-- DigitalPlat Terms of Service (effective 2026-06-29) require under-age-of-majority users to have parent/legal-guardian consent and supervision, and the guardian must agree to be bound. Source: https://domain.digitalplat.org/terms-of-service/ (Eligibility section). DigitalPlat's AUP prohibits phishing, malware, impersonation, fraud, malicious redirects, and other abuse: https://domain.digitalplat.org/acceptable-use-policy/. The registration-policy checkbox was selected in the authenticated form to run the availability/registration workflow; registration itself has not been submitted.
-- Created a **new pending Cloudflare Free Website zone** for `ministaff.dpdns.org` in the account "Itsmeadityabro@gmail.com's Account"; zone ID `7bed7a8696b9b569b086bcdcc3058c01`. Exact assigned nameservers: `patryk.ns.cloudflare.com` and `peaches.ns.cloudflare.com`. This is a new isolated zone; existing Workers/pages were not modified.
-- In DigitalPlat, selected External nameservers and entered the two assigned Cloudflare nameservers. The form then required account verification for the free slot (GitHub OAuth currently required for new accounts). Clicking "Verify with GitHub" returned `reauthentication_required` / "Verify your identity to change security settings." Registration is **blocked pending genuine reauthentication through the official DigitalPlat flow**. Do not bypass this identity/security check; the user must complete reauthentication directly. Do not submit registration until verification succeeds, then confirm Domain List and Cloudflare delegation status.
-- On 2026-10-16, at the user's request, reopened the DigitalPlat Account Verification page at `https://dash.domain.digitalplat.org/user/kyc`; GitHub OAuth is selected and the "Verify with GitHub" button is visible. The previous attempt returned the same DigitalPlat-side `reauthentication_required` JSON before reaching GitHub. Advise the user to sign out and back into DigitalPlat, revisit the official verification page, and retry. If it persists, contact `contact@digitalplat.org`; do not bypass the identity check or invent a direct GitHub OAuth URL.
-- No registration was submitted; `ministaff.dpdns.org` is not yet owned/registered in the DigitalPlat account. No payment was made. The Cloudflare zone is pending and DNS delegation is not active. Do not claim the custom domain is live.
-- After the user completes official reauthentication, resume the registration flow using free slot + exact Cloudflare nameservers, verify domain registration and Cloudflare activation, then decide/configure the domain's staging hostname and email DNS. No production launch yet.
-
-
-
-## Alternative paid domain option — 2026-10-16
-- User is considering purchasing `ministaff.in` or `ministaffai.in` for ₹99 instead of relying on the blocked DigitalPlat free-domain flow.
-- Recommendation: prefer `ministaff.in` as the primary brand URL if available for ₹99 and the renewal price is acceptable; shorter and cleaner, with the product itself branded as MiniStaff AI. Do not claim availability/ownership without checking the registrar's checkout and final account domain list.
-- Official .IN Registry says its wholesale second-level .IN price is ₹500 per domain year and registrars set their own retail prices; therefore ₹99 may be a first-year promotion. Verify renewal cost, term, taxes/fees, and auto-renew before payment. Source: https://www.registry.in/tariff
-- User is a minor; parent/legal guardian should oversee purchase and make sure the registrant/contract details are accurate and the provider's terms are followed.
-- If purchased, add `ministaff.in` as a **separate** Cloudflare zone (do not use the existing pending `ministaff.dpdns.org` zone), point its assigned nameservers at the registrar, and only then connect a staging hostname to the existing staging Worker. DigitalPlat candidate remains unregistered; keep its pending Cloudflare zone untouched unless user later asks to remove it.
+## Current progress and immediate next actions
+- **Foundation/infrastructure estimate: about 65–70% complete.** Branded app routes and major feature foundations exist; CI passes; a Cloudflare staging Worker is deployed and health-checked; the dedicated Supabase project and 4 migrations are applied; RLS is enabled across the 8 public tables; the server-only Supabase key is synced.
+- **Launch readiness estimate: about 30–35% complete.** Checklist items are counted separately: 38 of 123 checkboxes were checked before this update. The checklist is conservative because it requires live evidence, not just code.
+- Domain purchase is deferred by the user. Keep using the `workers.dev` staging URL for development; the pending Cloudflare zone `ministaff.dpdns.org` is not an owned/registered domain and should not be connected as if it were live.
+- Next priorities independent of purchasing a domain: (1) run end-to-end auth tests and email verification where possible; SMTP delivery remains unconfigured, (2) use two test accounts/workspaces to verify permission and tenant isolation, (3) configure Agent37 server-side and run a budget-approved minimal smoke test, (4) test lead webhook/idempotent queue/appointments, and (5) add authoritative server-side quota and cost protections.
+- After the user purchases and owns a domain, configure its separate Cloudflare zone/delegation, a staging custom hostname, and trusted SMTP/sender DNS. Then finish responsive/accessibility, monitoring, backups, legal/support, production deployment, and release/rollback checks.
+- Continue updating this file and docs/BUILD_AND_LAUNCH_CHECKLIST.md at every substantive project turn.
