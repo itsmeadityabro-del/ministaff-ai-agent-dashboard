@@ -3,10 +3,10 @@
 // real managed/compute money against the wallet behind AGENT37_API_KEY: it creates a
 // real instance, waits for it, sends ONE chat turn over the data plane, and deletes it.
 //
-// Run it before shipping a change that touches the create/chat/delete path:
-//   AGENT37_API_KEY=sk_live_... node scripts/smoke.mjs
-// (reads AGENT37_API_KEY from the environment or .env.local). Pass --keep to skip the
-// delete and leave the instance running for manual poking.
+// This is BILLABLE. No instance is created unless an explicit approval flag is supplied:
+//   AGENT37_API_KEY=... node scripts/smoke.mjs --budget-approved
+// (reads AGENT37_API_KEY from the environment or .env.local). Keeping the instance requires
+// BOTH --keep and --keep-approved; otherwise the script always attempts deletion.
 //
 // This talks straight to the Agent37 API (control plane + the instance's data plane),
 // the same surfaces src/lib/agent37.ts wraps — so a green run proves the API contract
@@ -16,6 +16,20 @@ import { readFileSync } from "node:fs";
 
 const API = process.env.AGENT37_API || "https://api.agent37.com/v1";
 const KEEP = process.argv.includes("--keep");
+const BUDGET_APPROVED = process.argv.includes("--budget-approved");
+const KEEP_APPROVED = process.argv.includes("--keep-approved");
+
+if (!BUDGET_APPROVED) {
+  console.error(
+    "This smoke test creates a real Agent37 instance and sends a chat request. " +
+    "It will not run without --budget-approved after the account owner confirms the permitted test spend."
+  );
+  process.exit(2);
+}
+if (KEEP && !KEEP_APPROVED) {
+  console.error("Leaving a test instance running requires both --keep and --keep-approved.");
+  process.exit(2);
+}
 
 function readEnv(name) {
   if (process.env[name]) return process.env[name];
