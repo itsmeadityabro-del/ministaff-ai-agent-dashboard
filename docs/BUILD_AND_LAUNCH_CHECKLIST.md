@@ -195,7 +195,7 @@ Fill these fields in only after observing the actual deployment:
 
 ## 13. Progress snapshot — 2026-10-16
 - **Estimated engineering foundation/infrastructure: about 72% complete.** Branded app routes and feature foundations exist; CI passes; Cloudflare staging Worker and Supabase are configured; seven migrations apply cleanly; all 8 public tables have RLS and browser roles have no direct table grants.
-- **Estimated launch readiness: about 35%.** Checklist tally after this update is 61 of 147 boxes complete (about 41%); this is a task tally, not a customer-readiness score, since live auth, billing, and tenant acceptance tests remain.
+- **Estimated launch readiness: about 35%.** Checklist tally after this update is 69 of 153 boxes complete (about 45%); this is a task tally, not a customer-readiness score, since live auth, billing, and tenant acceptance tests remain.
 - Domain purchase is deferred. Use the `workers.dev` staging URL; do not treat `ministaff.dpdns.org` as registered or live.
 - Latest verified CI [38899346815](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38899346815) passed type-check, security tests, and production build. Latest staging Worker deployment [38899346883](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38899346883) passed the health check and live unauthenticated API JSON 401/no-store smoke test.
 - Next steps: review Agent37 wallet/billing and agree an explicit test-spend limit before any billable smoke test; then complete auth/email, two-account isolation, live invite and lead/appointment tests, server-side quota/cost controls, UI/accessibility, operational readiness, and eventual domain/production setup.
