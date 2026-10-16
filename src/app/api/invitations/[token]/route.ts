@@ -1,6 +1,5 @@
 import { ApiError, handleError } from "@/lib/http";
 
-type Ctx = { params: Promise<{ token: string }> };
 
 export async function POST() {
   try {
