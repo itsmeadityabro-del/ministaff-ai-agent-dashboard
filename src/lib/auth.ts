@@ -87,5 +87,5 @@ export async function requireAgentAccess(agent37Id: string, _access: "member" | 
     throw new ApiError(404, "not_found", "Agent not found");
   }
   await requireMember(db, row.workspace_id, user.id);
-  return { db, user, row };
+  return { db, user, row, account };
 }
