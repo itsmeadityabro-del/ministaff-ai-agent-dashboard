@@ -43,10 +43,10 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 - Do not reapply these migrations blindly. Check remote migration history before any subsequent schema change.
 
 ## Supabase keys and remaining manual credential step
-- Verified GitHub Actions secret names currently present: CLOUDFLARE_API_TOKEN, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY (legacy compatibility), and SUPABASE_DB_PASSWORD. `SUPABASE_SECRET_KEY` is not present yet.
+- Verified GitHub Actions secret names currently present: `CLOUDFLARE_API_TOKEN`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (legacy compatibility), `SUPABASE_DB_PASSWORD`, and `SUPABASE`. The newly added `SUPABASE` name is not read by the workflow: both `SUPABASE_SECRET_KEY` and legacy `SUPABASE_SERVICE_ROLE_KEY` are still absent.
 - The Cloudflare workflow successfully synced NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY to the staging Worker on run 38884117058; its server-only secret-key step was skipped because SUPABASE_SECRET_KEY was absent.
-- REQUIRED manual action remains: add the current Supabase secret API key to GitHub Actions Secrets with the exact name SUPABASE_SECRET_KEY. Use the project dashboard Settings → API Keys → Secret keys → default key: https://supabase.com/dashboard/project/qgxjjvhzggepfurjtpyd/settings/api-keys . Copy the secret key directly from Supabase into GitHub's secret field. Never paste it into chat, commit it, or expose it to client code.
-- After SUPABASE_SECRET_KEY is added, manually dispatch the Cloudflare Worker workflow (or tell the assistant “secret added” so it can dispatch it). The workflow syncs it to Cloudflare as the server-only SUPABASE_SECRET_KEY. Until then, the admin client and server-side data operations remain unconfigured.
+- REQUIRED manual action remains: add the existing value again as a GitHub Actions secret named exactly `SUPABASE_SECRET_KEY`. `SUPABASE` is not an alias, so the workflow cannot read it under the required name. Use the Supabase project's Settings → API Keys → Secret keys page: https://supabase.com/dashboard/project/qgxjjvhzggepfurjtpyd/settings/api-keys . Never paste the value into chat, commit it, or expose it to client code; the existing `SUPABASE` entry may remain for now.
+- After the correctly named `SUPABASE_SECRET_KEY` exists, verify its name and dispatch the Cloudflare Worker workflow. Do not dispatch yet: with only `SUPABASE` present, the privileged sync step will be skipped. Until the expected key name exists, admin-backed data operations remain unconfigured.
 - Application code prefers the current Supabase publishable key on client/session clients, while retaining NEXT_PUBLIC_SUPABASE_ANON_KEY as a legacy fallback. The server-only admin client prefers SUPABASE_SECRET_KEY, with SUPABASE_SERVICE_ROLE_KEY as a migration fallback.
 - Do not disable or revoke any current Supabase keys during this migration.
 - Agent37 API key and the lead queue cron secret have not been configured.
@@ -60,7 +60,7 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 - Production dependency audit previously reported no production dependencies with critical/high vulnerabilities; 7 high findings remain in development/build tooling and should be remediated with compatibility retesting.
 
 ## Immediate next action
-1. User adds SUPABASE_SECRET_KEY directly in GitHub Settings → Secrets and variables → Actions.
+1. User adds the existing Supabase secret API key under the exact GitHub Actions name `SUPABASE_SECRET_KEY` (not only `SUPABASE`).
 2. Rerun the staging Worker workflow and confirm the secret sync/health check.
 3. Configure a trusted SMTP/email sender in Supabase Auth and verify delivery.
 4. Run live signup, email-verification, callback, login/logout, password-recovery, workspace-creation, authorization, and workspace-isolation tests.
