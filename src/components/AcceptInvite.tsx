@@ -40,7 +40,7 @@ export function AcceptInvite({
         <div className="rounded-lg border bg-card p-6">
           <p className="text-sm text-muted-foreground">You&apos;ve been invited to join</p>
           <p className="mt-1 text-lg font-medium">{workspaceName}</p>
-          <p className="mt-1 text-sm text-muted-foreground">as {role}</p>
+          <p className="mt-1 text-sm text-muted-foreground">as {role === "admin" ? "Admin" : "Member"}</p>
           <Button className="mt-4 w-full" onClick={accept} disabled={busy}>
             {busy ? "Joining..." : "Accept invitation"}
           </Button>
