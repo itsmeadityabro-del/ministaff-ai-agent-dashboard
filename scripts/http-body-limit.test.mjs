@@ -78,3 +78,15 @@ test("readJson preserves the existing safe empty-object fallback for malformed J
   const result = await readJson(request, 100);
   assert.equal(Object.keys(result).length, 0);
 });
+
+test("JSON API responses are marked no-store", () => {
+  const response = moduleExports.json({ workspace: "private" }, 200);
+  assert.equal(response.init.headers["Cache-Control"], "no-store");
+  assert.equal(response.init.status, 200);
+});
+
+test("JSON API errors are marked no-store", () => {
+  const response = moduleExports.apiError("Not found", 404, "not_found");
+  assert.equal(response.init.headers["Cache-Control"], "no-store");
+  assert.equal(response.init.status, 404);
+});
