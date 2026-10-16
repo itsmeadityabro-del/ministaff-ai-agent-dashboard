@@ -1,9 +1,18 @@
 // Small, dependency-free auth policy shared by server layouts and API authorization.
 // Supabase's service-role client bypasses RLS, so this policy must run before privileged access.
-export function hasVerifiedEmail(
-  user: { email_confirmed_at?: string | null } | null | undefined
+// Email-based identities must confirm email; phone-only identities must confirm phone.
+// An unverified email must not be bypassed merely because a phone field is also present.
+export function hasVerifiedContact(
+  user: {
+    email?: string | null;
+    email_confirmed_at?: string | null;
+    phone?: string | null;
+    phone_confirmed_at?: string | null;
+  } | null | undefined
 ): boolean {
-  return Boolean(user?.email_confirmed_at);
+  if (!user) return false;
+  if (user.email) return Boolean(user.email_confirmed_at);
+  return Boolean(user.phone && user.phone_confirmed_at);
 }
 
 // Keep role interpretation in one testable policy module. Unknown roles must never receive access.
