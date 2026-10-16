@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ApiError } from "@/lib/http";
-import { hasVerifiedEmail, hasWorkspaceAdminRole, hasWorkspaceMembership } from "@/lib/auth-policy";
+import { hasVerifiedContact, hasWorkspaceAdminRole, hasWorkspaceMembership } from "@/lib/auth-policy";
 import type { AgentRow, Role } from "@/lib/types";
 
 // `db` is the privileged service-role client (RLS bypassed). All table access in this app goes
@@ -22,8 +22,8 @@ export async function getSession() {
 export async function requireUser() {
   const { user } = await getSession();
   if (!user) throw new ApiError(401, "unauthorized", "Sign in required");
-  if (!hasVerifiedEmail(user)) {
-    throw new ApiError(403, "email_not_verified", "Verify your email before using your workspace.");
+  if (!hasVerifiedContact(user)) {
+    throw new ApiError(403, "email_not_verified", "Verify your email or phone before using your workspace.");
   }
   return { db: createAdminClient(), user };
 }
