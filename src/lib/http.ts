@@ -13,7 +13,10 @@ export class ApiError extends Error {
 }
 
 export function json<T>(data: T, status = 200) {
-  return NextResponse.json(data, { status });
+  return NextResponse.json(data, {
+    status,
+    headers: { "Cache-Control": "no-store" },
+  });
 }
 
 const DEFAULT_JSON_BODY_LIMIT = 1_048_576; // 1 MiB
@@ -68,7 +71,10 @@ export async function readJson<T = Record<string, unknown>>(
 }
 
 export function apiError(message: string, status = 400, code = "error") {
-  return NextResponse.json({ error: { code, message } }, { status });
+  return NextResponse.json(
+    { error: { code, message } },
+    { status, headers: { "Cache-Control": "no-store" } },
+  );
 }
 
 export function handleError(e: unknown) {
