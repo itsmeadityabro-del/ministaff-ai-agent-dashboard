@@ -19,7 +19,7 @@ export async function POST(request: Request, { params }: Ctx) {
     const body = await readJson<{
       name?: string; company?: string; email?: string; phone?: string;
       source?: string; temperature?: string; event_id?: string;
-    }>(request);
+    }>(request, 16_384);
     const name = body.name?.trim() ?? "";
     if (!name || name.length > 160) {
       throw new ApiError(400, "invalid_request", "name is required and must be 160 characters or fewer");
