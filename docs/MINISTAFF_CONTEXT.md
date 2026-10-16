@@ -59,6 +59,9 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 - Provider-reported usage display, but no authoritative monthly quota enforcement yet.
 - Production dependency audit previously reported no production dependencies with critical/high vulnerabilities; 7 high findings remain in development/build tooling and should be remediated with compatibility retesting.
 
+## Current auth workstream
+- Current active workstream: email delivery and authentication. Supabase Auth service was rechecked on 2026-10-16 and is ACTIVE_HEALTHY; email/password signup is enabled, email auto-confirm is disabled, the staging site URL and redirect allowlist are configured, and password minimum is 8. SMTP host/port/username/password/sender are still unset. Next dependency: user must choose a sender domain they control (or use limited internal-only default-SMTP testing) before configuring delivery; never request credentials in chat.
+
 ## Immediate next action
 1. Configure trusted SMTP/email sending in Supabase Auth and verify confirmation/reset email delivery.
 2. Run live signup, verification, callback, sign-in/out, password-recovery, workspace creation, permissions, and tenant-isolation tests.
