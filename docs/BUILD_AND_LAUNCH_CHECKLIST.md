@@ -165,9 +165,11 @@ Fill these fields in only after observing the actual deployment:
 
 
 ## 11. DigitalPlat domain registration checkpoint (2026-10-16)
-- [x] User confirmed this is the account to register MiniStaff's domain under and confirmed authorization to manage it.
-- [x] Opened the authenticated DigitalPlat registration flow; the dashboard showed one free slot available, no paid slots, and no plan slots.
-- [ ] Check live availability for `ministaff.dpdns.org` or another supported suffix and re-check live policies. Dashboard notice says .US.KG and .XX.KG registrations are paused for accounts below Power.
-- [ ] Read applicable policies and verify age/account eligibility before acknowledging; do not accept unexpected terms or buy a slot/bundle.
-- [ ] Create the external DNS zone only after the candidate is confirmed, record the exact nameservers, and enter those at DigitalPlat.
-- [ ] Verify the exact domain appears in Domain List after registration. Until then, no domain is registered and no DNS changes have been made.
+- [x] User confirmed this is the account they want to use and requested registration.
+- [x] Opened the current authenticated registration form; it showed one free slot, no paid/plan slots, required policy acknowledgement, and `.qzz.io` consumes a paid slot.
+- [x] Reviewed current DigitalPlat Terms of Service eligibility: users under the age of majority may use the service only with consent and supervision of a parent/legal guardian who agrees to be bound. Source: https://domain.digitalplat.org/terms-of-service/
+- [ ] Pause here until a parent/legal guardian explicitly confirms consent and supervision. Do not tick the policy box or attempt a registration before then.
+- [ ] After guardian confirmation, check candidate `ministaff.dpdns.org` availability and current permitted suffix rules; account dashboard says .US.KG and .XX.KG registrations are paused for accounts below Power.
+- [ ] If candidate is available and no charge is shown, prepare the Cloudflare DNS zone and note its exact assigned nameservers.
+- [ ] Submit only after verifying exact name, supported suffix, accurate registrant details, nameservers, policies, slot use, and no unexpected charge. Then confirm exact domain in Domain List.
+- [x] No terms were acknowledged, no registration submitted, no payment made, and no Cloudflare zone or DNS changes were made during this attempt.
