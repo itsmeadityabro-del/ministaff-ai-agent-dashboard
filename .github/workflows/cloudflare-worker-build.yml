@@ -1,0 +1,69 @@
+name: MiniStaff Cloudflare Worker build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - build/ministaff-from-scratch
+    paths:
+      - ".github/workflows/cloudflare-worker-build.yml"
+      - "app/**"
+      - "src/**"
+      - "public/**"
+      - "package.json"
+      - "package-lock.json"
+      - "next.config.*"
+      - "tsconfig.json"
+      - "postcss.config.*"
+      - "tailwind.config.*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ministaff-cloudflare-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  worker-build:
+    name: Validate vinext Worker output (no deployment)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out rebuild branch
+        uses: actions/checkout@v4
+        with:
+          ref: build/ministaff-from-scratch
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install repository dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Generate Cloudflare/vinext configuration
+        run: npx --yes vinext@1.2.1 init --platform=cloudflare --skip-check
+
+      - name: Build the application for Cloudflare
+        run: npm run build:vinext
+
+      - name: Validate Cloudflare deployment output without publishing
+        run: npx --yes @vinext/cloudflare@1.2.1 deploy --skip-build --dry-run
+
+      - name: Upload generated build output for diagnosis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ministaff-cloudflare-build-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            .cloudflare/output/**
+            cloudflare.config.ts
+            vite.config.ts
+            wrangler.jsonc
+            package.json
+            package-lock.json
