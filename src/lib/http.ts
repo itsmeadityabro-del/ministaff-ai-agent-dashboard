@@ -91,8 +91,8 @@ export function handleError(e: unknown) {
     // reflected in a user-visible error payload.
     const message = e.message
       .replace(/sk_live_[A-Za-z0-9_-]+/g, "[redacted]")
-      .replace(/Bearer\\s+\\S+/gi, "Bearer [redacted]")
-      .replace(/((?:api[_ -]?key|token)\\s*[:=]\\s*)\\S+/gi, "$1[redacted]")
+      .replace(/Bearer\s+\S+/gi, "Bearer [redacted]")
+      .replace(/((?:api[_ -]?key|token)\s*[:=]\s*)\S+/gi, "$1[redacted]")
       .slice(0, 400);
     return apiError(message, e.status, e.code);
   }
