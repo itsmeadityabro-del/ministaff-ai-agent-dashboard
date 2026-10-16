@@ -94,9 +94,9 @@ jobs:
             `- Low: ${v.low ?? "unknown"}`,
             "",
             "Full npm audit JSON is attached to this workflow's build artifact."
-          ].join("\\n");
+          ].join("\n");
           console.log(summary);
-          appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + "\\n");
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + "\n");
           if ((v.critical ?? 0) > 0 || (v.high ?? 0) > 0) {
             console.error("Blocking staging deployment: production dependencies have critical or high npm audit findings.");
             process.exitCode = 1;
