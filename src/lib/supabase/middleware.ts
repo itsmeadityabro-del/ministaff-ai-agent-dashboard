@@ -12,12 +12,15 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/invite");
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // Prefer the current publishable key; retain anon as a migration fallback.
+  const supabaseApiKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   // Staging can boot before Supabase is connected. Keep public/setup routes available
   // without constructing a Supabase client from missing credentials, but fail closed
   // for workspace-protected routes until authentication is configured.
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseUrl || !supabaseApiKey) {
     if (isPublic) {
       return NextResponse.next({ request });
     }
@@ -30,7 +33,7 @@ export async function updateSession(request: NextRequest) {
 
   let response = NextResponse.next({ request });
 
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+  const supabase = createServerClient(supabaseUrl, supabaseApiKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
