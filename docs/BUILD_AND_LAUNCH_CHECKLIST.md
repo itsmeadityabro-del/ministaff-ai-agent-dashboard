@@ -176,3 +176,11 @@ Fill these fields in only after observing the actual deployment:
 - [ ] Configure records/Worker custom hostname and email-sending DNS only after active delegation is verified. The root hostname is not yet connected to the staging Worker, SMTP isn't configured, and this is not a production release.
 - [x] No domain registration was submitted and no payment was made. Existing Workers and Pages were not modified.
 
+
+
+## 12. Alternate .IN domain purchase option (2026-10-16)
+- [ ] Compare `ministaff.in` and `ministaffai.in` live availability at the registrar. Preference is `ministaff.in` if available, with acceptable renewal pricing.
+- [ ] Before checkout, check the full registration term, renewal cost, taxes/fees, and auto-renewal. Official .IN registry publishes ₹500/domain-year wholesale pricing and says retail registrars set their own prices: https://www.registry.in/tariff. ₹99 may be promotional.
+- [ ] Parent/legal guardian oversees the purchase and confirms accurate registrant/contract details.
+- [ ] After purchase, confirm ownership in the registrar dashboard and create a separate Cloudflare zone for the purchased domain. Set the registrar's nameservers to the exact Cloudflare-assigned values, then connect only the staging hostname to the staging Worker.
+- [ ] Do not claim a domain is purchased until checkout completes and the registrar lists it. DigitalPlat `ministaff.dpdns.org` remains unregistered; its pending Cloudflare zone is separate and untouched.
