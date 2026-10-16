@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession, type DB } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { hasVerifiedEmail } from "@/lib/auth-policy";
+import { hasVerifiedContact } from "@/lib/auth-policy";
 import { WorkspaceProvider } from "@/components/WorkspaceProvider";
 import type { Role, Workspace, WorkspaceWithRole } from "@/lib/types";
 
