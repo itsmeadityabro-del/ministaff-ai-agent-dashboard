@@ -27,6 +27,7 @@ const prettyDate = (value: string) => new Intl.DateTimeFormat(undefined, { dateS
 
 export function AppointmentsView() {
   const { current } = useWorkspace();
+  const isAdmin = current?.role === "admin";
   const [items, setItems] = useState<Appointment[]>([]);
   const [leads, setLeads] = useState<LeadOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,7 +96,7 @@ export function AppointmentsView() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div><p className="text-sm font-medium text-primary">MINISTAFF / SCHEDULING</p><h1 className="mt-1 text-2xl font-semibold tracking-tight">Appointments</h1><p className="mt-1 text-sm text-muted-foreground">Record booking requests, confirm them manually and keep the lead timeline together.</p></div>
+        <div><p className="text-sm font-medium text-primary">MINISTAFF / SCHEDULING</p><h1 className="mt-1 text-2xl font-semibold tracking-tight">Appointments</h1><p className="mt-1 text-sm text-muted-foreground">{isAdmin ? "Record booking requests, confirm them manually and keep the lead timeline together." : "View workspace appointments. An admin is required to create or update bookings."}</p></div>
         <Button variant="outline" onClick={() => void load()} disabled={loading}><RefreshCw className="h-4 w-4" /> Refresh</Button>
       </div>
       <div className="grid gap-3 sm:grid-cols-3">
@@ -110,9 +111,10 @@ export function AppointmentsView() {
             <div className="p-10 text-center"><CalendarClock className="mx-auto h-8 w-8 text-muted-foreground" /><p className="mt-3 font-medium">No appointments yet</p><p className="mt-1 text-sm text-muted-foreground">Create a booking record using the form.</p></div>
           ) : <div className="divide-y">{items.map((item) => <div key={item.id} className="flex flex-col gap-3 p-4 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="font-medium">{item.title}</h3><Badge variant={statusVariant(item.status)}>{item.status}</Badge></div><p className="mt-1 text-sm text-muted-foreground">{prettyDate(item.starts_at)} – {prettyDate(item.ends_at)}</p><p className="mt-1 text-sm">{item.lead_name || "No linked lead"}{item.location ? ` · ${item.location}` : ""}</p>{item.notes && <p className="mt-2 text-sm text-muted-foreground">{item.notes}</p>}</div>
-            <div className="flex shrink-0 flex-wrap gap-2">{item.status === "pending" && <Button size="sm" onClick={() => void changeStatus(item.id, "confirmed")}>Confirm</Button>}{item.status === "confirmed" && <Button size="sm" variant="outline" onClick={() => void changeStatus(item.id, "completed")}>Complete</Button>}{item.status !== "cancelled" && item.status !== "completed" && <Button size="sm" variant="outline" onClick={() => void changeStatus(item.id, "cancelled")}>Cancel</Button>}</div>
+            {isAdmin && <div className="flex shrink-0 flex-wrap gap-2">{item.status === "pending" && <Button size="sm" onClick={() => void changeStatus(item.id, "confirmed")}>Confirm</Button>}{item.status === "confirmed" && <Button size="sm" variant="outline" onClick={() => void changeStatus(item.id, "completed")}>Complete</Button>}{item.status !== "cancelled" && item.status !== "completed" && <Button size="sm" variant="outline" onClick={() => void changeStatus(item.id, "cancelled")}>Cancel</Button>}</div>}
           </div>)}</div>}
         </section>
+        {isAdmin ? (
         <aside className="h-fit rounded-xl border bg-card p-4">
           <div className="mb-4"><h2 className="font-semibold">Create appointment</h2><p className="text-xs text-muted-foreground">Saved as pending until you confirm it</p></div>
           <form onSubmit={createAppointment} className="space-y-3">
@@ -126,6 +128,12 @@ export function AppointmentsView() {
             <p className="text-xs text-muted-foreground">This MVP records appointments but does not check an external calendar or send booking confirmations.</p>
           </form>
         </aside>
+        ) : (
+          <aside className="h-fit rounded-xl border bg-card p-4">
+            <h2 className="font-semibold">Read-only access</h2>
+            <p className="mt-2 text-sm text-muted-foreground">Members can view appointments. An admin is required to create, confirm, complete or cancel a booking.</p>
+          </aside>
+        )}
       </div>
     </div>
   );
