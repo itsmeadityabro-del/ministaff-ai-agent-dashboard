@@ -268,9 +268,9 @@ async function configureAuth(call, ref, siteUrl) {
     site_url: siteUrl,
     uri_allow_list: allow.join(","),
     external_email_enabled: true,
-    // Open signup, no email verification: signUp returns a session immediately,
-    // so the login form can register-and-go with zero inbox round-trips.
-    mailer_autoconfirm: true,
+    // Require inbox confirmation before email/password users receive a session.
+    // Provider-based OAuth and phone OTP still depend on their provider configuration.
+    mailer_autoconfirm: false,
   });
   ok(`Auth Site URL set to ${siteUrl}`);
   info(`Redirect allow-list: ${allow.join(", ")}`);
@@ -285,7 +285,7 @@ Reads .env.local and finishes the Supabase setup for you using
 SUPABASE_ACCESS_TOKEN (a personal access token):
   - runs the database migration(s)
   - configures the Site URL + redirect allow-list and turns on
-    email + password auth (open signup, no email verification)
+    email + password auth (email confirmation required)
   - fills in NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY /
     SUPABASE_SERVICE_ROLE_KEY (server-only)
 
