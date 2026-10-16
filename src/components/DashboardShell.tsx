@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarClock, ChartNoAxesCombined, LayoutGrid, Settings } from "lucide-react";
+import { CalendarClock, ChartNoAxesCombined, LayoutGrid, Settings, Users } from "lucide-react";
 import { branding } from "@/config/branding";
 import { AccountMenu } from "@/components/AccountMenu";
 import { cn } from "@/lib/utils";
