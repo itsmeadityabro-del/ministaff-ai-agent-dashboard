@@ -97,6 +97,10 @@ jobs:
           ].join("\\n");
           console.log(summary);
           appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + "\\n");
+          if ((v.critical ?? 0) > 0 || (v.high ?? 0) > 0) {
+            console.error("Blocking staging deployment: production dependencies have critical or high npm audit findings.");
+            process.exitCode = 1;
+          }
           NODE
 
       - name: Detect persisted Cloudflare configuration
