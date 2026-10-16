@@ -14,3 +14,16 @@ export function hasWorkspaceMembership(role: string | null | undefined): boolean
 export function hasWorkspaceAdminRole(role: string | null | undefined): boolean {
   return role === "admin";
 }
+
+export function isApiRoutePath(pathname: string): boolean {
+  return pathname === "/api" || pathname.startsWith("/api/");
+}
+
+// HTML pages redirect to login; APIs pass through to their JSON-authenticated route handlers.
+export function shouldRedirectToLogin(
+  pathname: string,
+  isPublic: boolean,
+  hasUser: boolean,
+): boolean {
+  return !isPublic && !isApiRoutePath(pathname) && !hasUser;
+}
