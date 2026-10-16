@@ -29,7 +29,8 @@
 
 - [ ] User requested a domain from DigitalPlat FreeDomain. The official README lists `.dpdns.org`, `.us.kg`, `.qzz.io`, `.xx.kg`, and `.qd.je`; official registration dashboard: https://dash.domain.digitalplat.org/.
 - [ ] Proposed first name to check: `ministaff.dpdns.org` (availability and registration are not confirmed).
-- [ ] Open the authenticated DigitalPlat dashboard; read current notices/policies and verify exact name, suffix support, nameserver requirements, slots and any displayed price before final registration. The read-only web fetch returned 403 and no authenticated DigitalPlat session is available here; no domain has been registered yet.
+- [x] Opened the official DigitalPlat dashboard (`https://dash.domain.digitalplat.org/`) on the user's connected Windows PC on 2026-10-16 at the user's explicit request. This only opens the website; no account login, domain search, purchase, or registration was performed.
+- [ ] User signs in, reads current notices/policies, and verifies exact name availability, suffix support, nameserver requirements, slots and any displayed price before registration. No domain has been registered yet.
 - [ ] Prepare an external DNS zone with Cloudflare only after confirming the proposed name and current registration requirements; enter the exact nameservers provided by Cloudflare. DigitalPlat's guide says normal DNS records are managed at the external authoritative DNS provider.
 - [ ] After domain registration/delegation, configure and verify email-related DNS records with the selected SMTP provider; then test Supabase confirmation and password-reset messages.
 
