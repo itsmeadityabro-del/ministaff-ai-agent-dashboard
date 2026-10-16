@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isApiRoutePath, shouldRedirectToLogin } from "@/lib/auth-policy";
 
 export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -17,12 +18,18 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Staging can boot before Supabase is connected. Keep public/setup routes available
-  // without constructing a Supabase client from missing credentials, but fail closed
-  // for workspace-protected routes until authentication is configured.
+  // Keep public/setup routes available without Supabase credentials. API routes must
+  // return JSON to callers, not an HTML login redirect. When Supabase is not configured,
+  // fail API requests closed with an explicit 503; otherwise the route handler checks auth.
   if (!supabaseUrl || !supabaseApiKey) {
     if (isPublic) {
       return NextResponse.next({ request });
+    }
+    if (isApiRoutePath(pathname)) {
+      return NextResponse.json(
+        { error: { code: "auth_not_configured", message: "API authentication is not configured" } },
+        { status: 503, headers: { "Cache-Control": "no-store" } },
+      );
     }
 
     const url = request.nextUrl.clone();
@@ -54,7 +61,9 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && !isPublic) {
+  // Every API route has its own session/role or secret check. Let it produce a structured
+  // JSON 401/403/503 instead of redirecting fetch() callers to HTML, which breaks apiFetch().
+  if (shouldRedirectToLogin(pathname, isPublic, Boolean(user))) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);
