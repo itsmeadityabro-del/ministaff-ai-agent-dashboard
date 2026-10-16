@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ApiError } from "@/lib/http";
-import { hasVerifiedEmail } from "@/lib/auth-policy";
+import { hasVerifiedEmail, hasWorkspaceAdminRole, hasWorkspaceMembership } from "@/lib/auth-policy";
 import type { AgentRow, Role } from "@/lib/types";
 
 // `db` is the privileged service-role client (RLS bypassed). All table access in this app goes
@@ -29,29 +29,33 @@ export async function requireUser() {
 }
 
 export async function getRole(db: DB, workspaceId: string, userId: string): Promise<Role | null> {
-  const { data } = await db
+  const { data, error } = await db
     .from("memberships")
     .select("role")
     .eq("workspace_id", workspaceId)
     .eq("user_id", userId)
     .maybeSingle();
+  if (error) throw new ApiError(500, "db_error", "Unable to verify workspace membership");
   return (data?.role as Role) ?? null;
 }
 
 // 404 (not 403) so we don't leak whether the workspace exists.
 export async function requireMember(db: DB, workspaceId: string, userId: string): Promise<Role> {
   const role = await getRole(db, workspaceId, userId);
-  if (!role) throw new ApiError(404, "not_found", "Workspace not found");
+  if (!hasWorkspaceMembership(role)) throw new ApiError(404, "not_found", "Workspace not found");
   return role;
 }
 
 export async function requireAdmin(db: DB, workspaceId: string, userId: string): Promise<void> {
-  const role = await getRole(db, workspaceId, userId);
-  if (role !== "admin") throw new ApiError(403, "forbidden", "Admin role required");
+  // Return the same 404 as requireMember when the caller is not in the workspace, so protected
+  // endpoints do not reveal whether a guessed workspace/agent identifier exists.
+  const role = await requireMember(db, workspaceId, userId);
+  if (!hasWorkspaceAdminRole(role)) throw new ApiError(403, "forbidden", "Admin role required");
 }
 
 export async function getAgentRow(db: DB, agent37Id: string): Promise<AgentRow> {
-  const { data } = await db.from("agents").select("*").eq("agent37_id", agent37Id).maybeSingle();
+  const { data, error } = await db.from("agents").select("*").eq("agent37_id", agent37Id).maybeSingle();
+  if (error) throw new ApiError(500, "db_error", "Unable to verify agent access");
   if (!data) throw new ApiError(404, "not_found", "Agent not found");
   return data as AgentRow;
 }
