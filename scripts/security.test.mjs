@@ -40,3 +40,21 @@ test("normalizes allowed HTTP(S) origins and rejects unsupported schemes", () =>
   assert.equal(normalizeOrigin("javascript:alert(1)"), null);
   assert.equal(normalizeOrigin(""), null);
 });
+
+
+const authPolicySource = readFileSync(new URL("../src/lib/auth-policy.ts", import.meta.url), "utf8");
+const authPolicyCompiled = ts.transpileModule(authPolicySource, {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+}).outputText;
+const authPolicyExports = Object.create(null);
+vm.runInNewContext(authPolicyCompiled, { exports: authPolicyExports }, { timeout: 1000 });
+const { hasVerifiedEmail } = authPolicyExports;
+
+test("protected access requires a verified email timestamp", () => {
+  assert.equal(hasVerifiedEmail(null), false);
+  assert.equal(hasVerifiedEmail(undefined), false);
+  assert.equal(hasVerifiedEmail({}), false);
+  assert.equal(hasVerifiedEmail({ email_confirmed_at: null }), false);
+  assert.equal(hasVerifiedEmail({ email_confirmed_at: "" }), false);
+  assert.equal(hasVerifiedEmail({ email_confirmed_at: "2026-10-16T00:00:00Z" }), true);
+});

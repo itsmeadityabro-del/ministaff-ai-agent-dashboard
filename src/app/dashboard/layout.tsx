@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession, type DB } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { hasVerifiedEmail } from "@/lib/auth-policy";
 import { WorkspaceProvider } from "@/components/WorkspaceProvider";
 import type { Role, Workspace, WorkspaceWithRole } from "@/lib/types";
 
@@ -60,6 +61,7 @@ async function createFirstWorkspace(db: DB, userId: string): Promise<WorkspaceWi
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user } = await getSession();
   if (!user) redirect("/login");
+  if (!hasVerifiedEmail(user)) redirect("/login?error=unverified");
 
   // Table access goes through the privileged client; the user came from the verified session above.
   const db = createAdminClient();

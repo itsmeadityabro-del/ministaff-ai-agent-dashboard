@@ -32,13 +32,18 @@ export default function LoginPage() {
     if (requested === "signup" || requested === "reset") setMode(requested);
   }, []);
 
-  // /auth/callback bounces here with ?error=auth when a confirmation/recovery link
-  // fails (expired, already used, or opened in a different browser). Surface it —
-  // otherwise the user lands on a pristine form with no clue the link broke.
+  // Make callback failures and email-verification gates visible instead of dropping
+  // the user onto an unexplained sign-in form.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("error") !== "auth") return;
-    toast.error("That link is invalid or has expired. Sign in, or request a new one.");
+    const error = params.get("error");
+    if (error === "auth") {
+      toast.error("That link is invalid or has expired. Sign in, or request a new one.");
+    } else if (error === "unverified") {
+      toast.error("Verify your email before opening your workspace. Check your inbox for the confirmation link.");
+    } else {
+      return;
+    }
     params.delete("error");
     const qs = params.toString();
     window.history.replaceState(null, "", window.location.pathname + (qs ? `?${qs}` : ""));
@@ -91,8 +96,8 @@ export default function LoginPage() {
       });
       setLoading(false);
       if (error) {
-        // Email confirmation is off, so signing up an existing email errors here
-        // (rather than sending a useless link) — steer them to sign in instead.
+        // When Supabase identifies a duplicate email, steer the user to sign in
+        // rather than exposing unnecessary account details or retrying signup.
         if (error.code === "user_already_exists") {
           toast.error("That email already has an account. Sign in instead.");
           switchMode("signin");
@@ -100,14 +105,14 @@ export default function LoginPage() {
         }
         return toast.error(error.message);
       }
-      // Email confirmation is disabled: signUp returns a session immediately, so we
-      // register-and-go with no inbox round-trip.
+      // If Supabase returns a session, use it. Protected routes separately require
+      // a verified email, so deployments should enable confirmation in Auth settings.
       if (data.session) {
         window.location.href = next;
         return;
       }
-      // Fallback only reached if "Confirm email" is re-enabled on the project — then
-      // there's no session until the user verifies via the emailed link.
+      // With email confirmation enabled, no session is returned until the emailed
+      // link is verified. Keep the form on a clear check-your-email state.
       setSentEmail(mail);
       setSent("signup");
       return;
