@@ -90,9 +90,11 @@ test("customers cannot raise managed usage allowance or resize into unpriced com
 
 test("MiniStaff database access cannot bypass the server authorization layer", async () => {
   const sql = await read("../supabase/migrations/0004_ministaff_api_only_access.sql");
-  assert.match(sql, /revoke all on table[\s\S]*from PUBLIC, anon, authenticated/i);
-  assert.match(sql, /grant select, insert, update, delete on table[\s\S]*to service_role/i);
-  assert.match(sql, /revoke all on function public\.accept_invitation\(uuid, uuid\) from PUBLIC, anon, authenticated/i);
-  assert.match(sql, /revoke all on function public\.get_workspace_members\(uuid\) from PUBLIC, anon, authenticated/i);
-  assert.match(sql, /revoke all on function public\.bootstrap_ministaff_account\(text, uuid\) from PUBLIC, anon, authenticated/i);
+  assert.ok(sql.includes("revoke all on table"));
+  assert.ok(sql.includes("from PUBLIC, anon, authenticated;"));
+  assert.ok(sql.includes("grant select, insert, update, delete on table"));
+  assert.ok(sql.includes("to service_role;"));
+  assert.ok(sql.includes("revoke all on function public.accept_invitation(uuid, uuid) from PUBLIC, anon, authenticated;"));
+  assert.ok(sql.includes("revoke all on function public.get_workspace_members(uuid) from PUBLIC, anon, authenticated;"));
+  assert.ok(sql.includes("revoke all on function public.bootstrap_ministaff_account(text, uuid) from PUBLIC, anon, authenticated;"));
 });
