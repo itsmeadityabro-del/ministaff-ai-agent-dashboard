@@ -117,6 +117,47 @@ export function AuthMethods() {
           Continue with GitHub
         </Button>
       </div>
+      <Button type="button" variant="outline" className="w-full" disabled={busy} onClick={() => { setEmailMode((v) => !v); setPhoneMode(false); }}>
+        {emailMode ? "Hide email code sign-in" : "Continue with email code"}
+      </Button>
+      {emailMode && (
+        <form className="space-y-3" onSubmit={emailOtpSent ? verifyEmailOtp : sendEmailOtp}>
+          <Input
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={emailOtpSent || busy}
+            aria-label="Email address for one-time code"
+          />
+          {emailOtpSent && (
+            <Input
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder="Email verification code"
+              value={emailOtp}
+              onChange={(e) => setEmailOtp(e.target.value)}
+              required
+              minLength={6}
+              maxLength={8}
+              aria-label="Email verification code"
+            />
+          )}
+          <Button type="submit" className="w-full" disabled={busy}>
+            {busy ? "Please wait..." : emailOtpSent ? "Verify email code and sign in" : "Send email code"}
+          </Button>
+          {emailOtpSent && (
+            <button type="button" className="w-full text-center text-xs text-muted-foreground hover:text-foreground" disabled={busy} onClick={() => { setEmailOtpSent(false); setEmailOtp(""); }}>
+              Use a different email or request another code
+            </button>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Requires Supabase email authentication and an email template configured to display the one-time code.
+          </p>
+        </form>
+      )}
       <div className="flex items-center gap-3 text-xs text-muted-foreground">
         <span className="h-px flex-1 bg-border" />
         <span>OR PHONE</span>
