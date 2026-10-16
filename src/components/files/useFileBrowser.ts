@@ -24,7 +24,7 @@ async function runPool<T>(items: T[], limit: number, worker: (item: T) => Promis
 // from the Agents API (it resolves ~ / defaults), so navigation, upload targets, and
 // new-folder/rename paths are all derived from the listing the server returns. Every call targets
 // the active agent via the `agentId` prop (this app is multi-agent).
-export function useFileBrowser(agentId: string) {
+export function useFileBrowser(agentId: string, canWrite = true) {
   const [path, setPath] = useState<string | null>(null); // resolved abs dir; null until first load
   const [parentPath, setParentPath] = useState<string | null>(null);
   const [entries, setEntries] = useState<FileEntry[]>([]);
@@ -111,7 +111,7 @@ export function useFileBrowser(agentId: string) {
   // doesn't abort the batch. Concurrency is bounded so a deep folder can't open a socket per file.
   const uploadEntries = useCallback(
     async (items: { file: File; relPath: string }[]) => {
-      if (!items.length || !path) return;
+      if (!canWrite || !items.length || !path) return;
       setUploading((n) => n + items.length);
       let failures = 0;
       try {
@@ -160,7 +160,7 @@ export function useFileBrowser(agentId: string) {
   const createDir = useCallback(
     async (name: string) => {
       const clean = name.trim();
-      if (!clean || !path) return;
+      if (!canWrite || !clean || !path) return;
       try {
         await apiFetch(`/api/agents/${agentId}/files/dir?path=${encodeURIComponent(joinPath(path, clean))}`, {
           method: "POST",
@@ -178,7 +178,7 @@ export function useFileBrowser(agentId: string) {
   const rename = useCallback(
     async (entry: FileEntry, newName: string) => {
       const clean = newName.trim();
-      if (!clean || !path || clean === entry.name) return;
+      if (!canWrite || !clean || !path || clean === entry.name) return;
       try {
         await apiFetch(`/api/agents/${agentId}/files`, {
           method: "PATCH",
