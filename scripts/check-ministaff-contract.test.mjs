@@ -73,3 +73,16 @@ test("legacy team routes and UI cannot add users or remove managed membership", 
   assert.doesNotMatch(accountMenu, /New workspace/);
   assert.doesNotMatch(settings, /Delete workspace/);
 });
+
+
+test("customers cannot raise managed usage allowance or resize into unpriced compute", async () => {
+  const budget = await read("../src/app/api/agents/[id]/budget/route.ts");
+  const resize = await read("../src/app/api/agents/[id]/resize/route.ts");
+  const settings = await read("../src/components/AgentSettingsTab.tsx");
+  assert.match(budget, /PLAN_MONTHLY_CAPS_USD/);
+  assert.match(budget, /plan_budget_limit/);
+  assert.match(budget, /monthly_cap_usd > planCap/);
+  assert.match(resize, /managed_agent_resize_disabled/);
+  assert.doesNotMatch(settings, /Delete agent/);
+  assert.doesNotMatch(settings, /ConfirmDialog/);
+});
