@@ -33,27 +33,31 @@ async function resolveTemplate(): Promise<string | undefined> {
 
 export async function GET(request: Request) {
   try {
-    const { db, user } = await requireUser();
+    const { db, user, account } = await requireMiniStaffAccount();
     const workspaceId = new URL(request.url).searchParams.get("workspace");
     if (!workspaceId) throw new ApiError(400, "invalid_request", "workspace query param is required");
+    if (!account.workspace_id || workspaceId !== account.workspace_id) {
+      throw new ApiError(404, "not_found", "Workspace not found");
+    }
 
     const role = await requireMember(db, workspaceId, user.id);
 
     const { data: rows, error } = await db
       .from("agents")
       .select("*")
-      .eq("workspace_id", workspaceId)
+      .eq("workspace_id", account.workspace_id)
+      .eq("agent37_id", account.agent37_id)
       .order("created_at", { ascending: false });
     if (error) throw new ApiError(500, "db_error", error.message);
 
     let live = new Map<string, Agent>();
     let templates = new Map<string, Template>();
     const [liveRes, tmplRes] = await Promise.allSettled([
-      agent37.listAgents(),
+      agent37.getAgent(account.agent37_id),
       getTemplates(),
     ]);
     if (liveRes.status === "fulfilled") {
-      live = new Map(liveRes.value.data.map((i) => [i.id, i]));
+      live = new Map([[liveRes.value.id, liveRes.value]]);
     }
     if (tmplRes.status === "fulfilled") {
       templates = new Map(tmplRes.value.map((t) => [t.name, t]));
