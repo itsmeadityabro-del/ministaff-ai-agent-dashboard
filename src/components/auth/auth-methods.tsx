@@ -40,7 +40,7 @@ export function AuthMethods() {
   async function sendEmailOtp(e: React.FormEvent) {
     e.preventDefault();
     const normalizedEmail = email.trim().toLowerCase();
-    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(normalizedEmail)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
       toast.error("Enter a valid email address.");
       return;
     }
@@ -58,7 +58,7 @@ export function AuthMethods() {
 
   async function verifyEmailOtp(e: React.FormEvent) {
     e.preventDefault();
-    if (!/^\\d{6,8}$/.test(emailOtp.trim())) {
+    if (!/^\d{6,8}$/.test(emailOtp.trim())) {
       toast.error("Enter the verification code from your email.");
       return;
     }
