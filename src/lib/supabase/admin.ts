@@ -1,7 +1,8 @@
 import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-// The privileged, SERVER-ONLY Supabase client, keyed by the service-role secret.
+// The privileged, SERVER-ONLY Supabase client, keyed by the current secret API key.
+// Legacy service-role variable remains a migration fallback.
 //
 // It BYPASSES Row-Level Security, so it must never be imported by a client component or reach the
 // browser (`server-only` makes that a build error; the key has no NEXT_PUBLIC_ prefix). This app
@@ -18,10 +19,10 @@ let cached: SupabaseClient | null = null;
 export function createAdminClient(): SupabaseClient {
   if (cached) return cached;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
     throw new Error(
-      "Supabase admin client needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY — run `npm run setup`."
+      "Supabase admin client needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY (legacy fallback: SUPABASE_SERVICE_ROLE_KEY)."
     );
   }
   cached = createClient(url, key, {
