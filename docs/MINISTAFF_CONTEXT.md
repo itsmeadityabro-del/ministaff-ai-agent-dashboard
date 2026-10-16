@@ -34,19 +34,21 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 - Auth site URL is the staging Worker URL; redirect allowlist includes staging callback paths and localhost development paths. Supabase password minimum is set to 8 characters, matching the app.
 - Email/password signup is enabled and email auto-confirm is disabled, so email verification is required. Custom SMTP/sender is not configured yet; reliable confirmation and reset email delivery remains unverified.
 - This is a new, dedicated MiniStaff project. Neither older inactive project was modified.
-- All four migrations from supabase/migrations were applied in order and migration history confirmed them:
+- Five migrations from supabase/migrations were applied in order and migration history confirmed them:
   1. 0001_init — version 20261016095558
   2. 0002_ministaff_sales_desk — version 20261016095609
   3. 0003_lead_webhooks_and_jobs — version 20261016095616
   4. 0004_lead_job_worker — version 20261016095623
+  5. 0005_rpc_privilege_hardening — version 20261016114852
 - Verified inventory: 8 public tables (agents, appointments, invitations, lead_jobs, lead_webhook_keys, leads, memberships, workspaces), all 8 have RLS enabled, 15 policies, and the expected workspace/invitation functions. Tables are empty as expected for a new project.
+- Audited SECURITY DEFINER functions and found browser roles inherited EXECUTE from PostgreSQL's default PUBLIC grant. Applied migration 0005 to revoke function execution from PUBLIC/anon/authenticated and retain service_role access; live verification confirms all 8 affected functions are non-executable by anon/authenticated, executable by service_role, with zero direct table grants for anon/authenticated.
 - Do not reapply these migrations blindly. Check remote migration history before any subsequent schema change.
 
 ## Supabase keys and remaining manual credential step
 - GitHub Actions secret `SUPABASE_SECRET_KEY` is now configured under the exact name expected by the workflow. The latest successful staging workflow [38887168927](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38887168927) passed the server-only Supabase key sync step and the staging health check.
 - A mistakenly named `SUPABASE` secret may remain; the workflow does not use it. Do not print secret values, paste them into chat, commit them, or expose them to client code.
 - The staging Worker has the Supabase URL and public key runtime settings plus a server-only admin secret synced. This is necessary infrastructure but does **not** prove login, signup, data access, or tenant isolation work end to end.
-- Agent37 API key and the lead queue cron secret have not been configured. Add `AGENT37_API_KEY` as a server-side GitHub Actions/Worker secret only when ready for a budget-aware test. Keep the cron worker disabled until its secret, staging test workspace, and queue tests are ready.
+- Agent37 API key is available to the user but has **not been added to GitHub Actions/Cloudflare yet**. The Worker workflow now conditionally syncs the repository secret `AGENT37_API_KEY` into the staging Worker as a server-only secret. User must add it under GitHub repository Settings → Secrets and variables → Actions; then manually rerun `MiniStaff Cloudflare Worker build` because adding a secret does not trigger a push workflow. Never request or expose the raw value in chat. The lead queue cron secret and auto-triage enable flag remain unset; keep the cost-bearing worker disabled until its secret, staging test workspace, and queue tests are ready.
 - Do not disable or revoke any current Supabase keys during the migration.
 
 ## Code already present
@@ -70,6 +72,7 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 - **Foundation/infrastructure estimate: about 65–70% complete.** Branded app routes and major feature foundations exist; CI passes; a Cloudflare staging Worker is deployed and health-checked; the dedicated Supabase project and 4 migrations are applied; RLS is enabled across the 8 public tables; the server-only Supabase key is synced.
 - **Launch readiness estimate: about 30–35% complete.** Checklist items are counted separately: 40 of 123 checklist checkboxes are checked at this snapshot (about 33%; a checklist count is not a product-completeness metric). The checklist is conservative because it requires live evidence, not just code.
 - Domain purchase is deferred by the user. Keep using the `workers.dev` staging URL for development; the pending Cloudflare zone `ministaff.dpdns.org` is not an owned/registered domain and should not be connected as if it were live.
-- Next priorities independent of purchasing a domain: (1) run end-to-end auth tests and email verification where possible; SMTP delivery remains unconfigured, (2) use two test accounts/workspaces to verify permission and tenant isolation, (3) configure Agent37 server-side and run a budget-approved minimal smoke test, (4) test lead webhook/idempotent queue/appointments, and (5) add authoritative server-side quota and cost protections.
+- Latest independent security hardening: migration 0005 blocks direct browser execution of privileged SECURITY DEFINER RPCs; authorization helper queries now fail closed on database errors; workspace deletion preserves the workspace if agent cleanup fails; removing a workspace member now requires verified membership/admin access and checks the database read-back. GitHub CI passed on commit `b26115a9a29c447b4ed37a17e0874c2489e0ed89` before the Agent37 workflow change. Current CI/Worker validation for the newest workflow sync change is in progress.
+- Next priorities independent of purchasing a domain: (1) user adds `AGENT37_API_KEY` to GitHub secrets and reruns the Worker workflow, (2) test Agent37 wallet/billing and do a budget-approved single-agent smoke test, (3) run end-to-end auth and email verification where possible (SMTP remains unconfigured), (4) test tenant isolation with two test accounts/workspaces, (5) test webhook/idempotent queue/appointments, and (6) add authoritative server-side quota and cost protections.
 - After the user purchases and owns a domain, configure its separate Cloudflare zone/delegation, a staging custom hostname, and trusted SMTP/sender DNS. Then finish responsive/accessibility, monitoring, backups, legal/support, production deployment, and release/rollback checks.
 - Continue updating this file and docs/BUILD_AND_LAUNCH_CHECKLIST.md at every substantive project turn.
