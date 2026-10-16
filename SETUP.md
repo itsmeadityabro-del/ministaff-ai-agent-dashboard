@@ -17,15 +17,15 @@ values. Per-variable docs live in [`.env.example`](.env.example).
 
 ## OAuth and SMS provider setup
 
-The login screen supports Google OAuth, GitHub OAuth, and phone SMS OTP. These buttons require provider setup in Supabase before they can work:
+The login screen supports Google OAuth, GitHub OAuth, email one-time codes, and phone SMS OTP. These methods require provider setup in Supabase before they can work:
 
 1. In **Authentication → Providers**, enable **Google** and/or **GitHub** and enter the OAuth client ID/secret from the respective provider console.
 2. Copy the Supabase project's callback URL shown by Supabase (usually `https://<project-ref>.supabase.co/auth/v1/callback`) into each OAuth provider's allowed redirect/callback URLs.
 3. In **Authentication → URL Configuration**, set the Site URL to the deployed MiniStaff origin and allow `/auth/callback` plus local development callback URLs.
-4. Keep **email confirmations enabled** for email/password signups. The setup script configures `mailer_autoconfirm=false`; re-run `npm run setup` to apply that setting to an existing project. For reliable delivery, configure custom SMTP under **Authentication → SMTP Settings** and customize the confirmation/reset templates. Supabase's default sender is rate-limited and is suitable only for limited testing.
+4. Keep **email confirmations enabled** for email/password signups. The setup script configures `mailer_autoconfirm=false`; re-run `npm run setup` to apply that setting to an existing project. For reliable delivery, configure custom SMTP under **Authentication → SMTP Settings**. For six-digit email OTP sign-in, open **Authentication → Email Templates** and configure the **Magic Link** template to visibly include the code variable `{{ .Token }}`. The email must clearly tell users to enter the one-time code in MiniStaff. A template that only renders a clickable link will not give users the code needed by the new code-entry screen. Test confirmation and password-reset templates separately; Supabase's default sender is rate-limited and suitable only for limited testing.
 5. For SMS OTP, enable the Phone provider and configure a supported SMS provider (for example Twilio) under Supabase Auth settings. Configure provider credentials and delivery limits in the Supabase dashboard; do not put SMS credentials in browser env variables.
 
-**Important:** SMS OTP currently signs a user in with a phone-based identity. It does not add/verify a phone number on an existing email account. Linking and verifying both email and phone on one account is a separate workflow and should be added before requiring both factors for every customer. OAuth provider configuration, email deliverability/SMTP, and real SMS delivery must be tested in staging.
+**Important:** Email OTP uses Supabase `signInWithOtp` / `verifyOtp` and requires an email template that displays `{{ .Token }}`; this is distinct from the email confirmation-link flow used by password signups. SMS OTP currently signs a user in with a phone-based identity. It does not add/verify a phone number on an existing email account. Linking and verifying both email and phone on one account is a separate workflow and should be added before requiring both factors for every customer. OAuth provider configuration, email deliverability/SMTP, and real SMS delivery must be tested in staging.
 
 ## For your coding agent
 
