@@ -8,11 +8,24 @@ This app runs on two secrets you supply (both behind a login, so a human must fe
 - **`SUPABASE_ACCESS_TOKEN`** (`sbp_…`) — [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens) (~30s).
 
 `npm run setup` does everything else: creates a free Supabase project (or configures the one
-whose URL you paste into `NEXT_PUBLIC_SUPABASE_URL`), runs the migration, enables email auth,
+whose URL you paste into `NEXT_PUBLIC_SUPABASE_URL`), runs the migration, enables email/password auth with email confirmation required,
 and writes the Supabase URL, anon key, and **server-only service-role key** back into
 `.env.local`. (Clients never touch the DB directly — the app reads/writes every table server-side
 with the service-role key; see [`AGENTS.md`](AGENTS.md).) It's idempotent and fills only blank
 values. Per-variable docs live in [`.env.example`](.env.example).
+
+
+## OAuth and SMS provider setup
+
+The login screen supports Google OAuth, GitHub OAuth, and phone SMS OTP. These buttons require provider setup in Supabase before they can work:
+
+1. In **Authentication → Providers**, enable **Google** and/or **GitHub** and enter the OAuth client ID/secret from the respective provider console.
+2. Copy the Supabase project's callback URL shown by Supabase (usually `https://<project-ref>.supabase.co/auth/v1/callback`) into each OAuth provider's allowed redirect/callback URLs.
+3. In **Authentication → URL Configuration**, set the Site URL to the deployed MiniStaff origin and allow `/auth/callback` plus local development callback URLs.
+4. Keep **email confirmations enabled** for email/password signups. The setup script configures `mailer_autoconfirm=false`; re-run `npm run setup` to apply that setting to an existing project.
+5. For SMS OTP, enable the Phone provider and configure a supported SMS provider (for example Twilio) under Supabase Auth settings. Configure provider credentials and delivery limits in the Supabase dashboard; do not put SMS credentials in browser env variables.
+
+**Important:** SMS OTP currently signs a user in with a phone-based identity. It does not add/verify a phone number on an existing email account. Linking and verifying both email and phone on one account is a separate workflow and should be added before requiring both factors for every customer. OAuth provider configuration, email deliverability/SMTP, and real SMS delivery must be tested in staging.
 
 ## For your coding agent
 
@@ -43,7 +56,7 @@ these steps in order; don't skip the checks.
    - `404` → `NEXT_PUBLIC_SUPABASE_URL` points at a project this token can't see.
 6. **Verify.** Run `npm run typecheck` and `npm run build` (no test suite — these two are the gate).
 7. **Start.** Run `npm run dev` and report the URL (<http://localhost:3000>): I sign up with
-   email + password (open signup, no email verification) → land in a fresh workspace. Remind me
+   email + password (open signup with email confirmation required) → land in a fresh workspace. Remind me
    that creating an agent needs a funded wallet — a `402` at create time is the wallet, not a bug.
 
 Constraints: keep changes minimal; add no features; the `sk_live_` key stays server-side;
@@ -66,7 +79,7 @@ Leave `SUPABASE_ACCESS_TOKEN` blank, skip `npm run setup`, create a free
 [Supabase](https://supabase.com) project, then: (1) **SQL Editor** → run
 [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) (it sets up the schema
 *and* revokes direct client table access — all DB access is server-side);
-(2) **Authentication → Providers** → enable **Email**; (3) **Authentication → URL
+(2) **Authentication → Providers** → enable **Email** and keep email confirmations enabled; (3) **Authentication → URL
 Configuration** → Site URL `http://localhost:3000`, add `http://localhost:3000/auth/callback`
 to Redirect URLs. Paste the project URL, anon key, and **service-role key** (Project Settings →
 API) into `.env.local` (`SUPABASE_SERVICE_ROLE_KEY` — server-only), then `npm run dev`.
