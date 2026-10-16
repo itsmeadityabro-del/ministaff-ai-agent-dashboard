@@ -204,7 +204,7 @@ export function FilesView({ agentId }: { agentId: string }) {
           </div>
 
           <div className="flex shrink-0 flex-wrap items-center gap-1 xl:ml-auto">
-            {selectedEntry && (
+            {canWrite && selectedEntry && (
               <SelectedActions
                 agentId={agentId}
                 entry={selectedEntry}
@@ -223,38 +223,42 @@ export function FilesView({ agentId }: { agentId: string }) {
               <RefreshCw className={cn("h-4 w-4", fb.loading && "animate-spin")} />
             </ToolbarIconButton>
             <span className="mx-1 hidden h-6 w-px bg-border sm:block" />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setNewFolderOpen(true)}
-              disabled={!fb.path}
-              className="h-9"
-            >
-              <FolderPlus className="h-4 w-4" />
-              New folder
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="sm" disabled={!fb.path || fb.uploading} className="h-9">
-                  {fb.uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                  Upload
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => uploadRef.current?.click()}>
-                  <Upload className="h-4 w-4" />
-                  Files
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => folderUploadRef.current?.click()}>
-                  <FolderUp className="h-4 w-4" />
-                  Folder
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <HiddenFileInput inputRef={uploadRef} onFiles={fb.uploadFiles} />
-            <HiddenFileInput inputRef={folderUploadRef} onFiles={fb.uploadFolder} />
+            {canWrite && (
+              <>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setNewFolderOpen(true)}
+                              disabled={!fb.path}
+                              className="h-9"
+                            >
+                              <FolderPlus className="h-4 w-4" />
+                              New folder
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button size="sm" disabled={!fb.path || fb.uploading} className="h-9">
+                                  {fb.uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                                  Upload
+                                  <ChevronDown className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onSelect={() => uploadRef.current?.click()}>
+                                  <Upload className="h-4 w-4" />
+                                  Files
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => folderUploadRef.current?.click()}>
+                                  <FolderUp className="h-4 w-4" />
+                                  Folder
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            <HiddenFileInput inputRef={uploadRef} onFiles={fb.uploadFiles} />
+                            <HiddenFileInput inputRef={folderUploadRef} onFiles={fb.uploadFolder} />
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -272,7 +276,7 @@ export function FilesView({ agentId }: { agentId: string }) {
           <div className="w-full p-4 md:p-6 lg:p-8" onClick={clearSelection}>
             {fb.visibleEntries.length === 0 ? (
               <EmptyFolder
-                canCreate={!!fb.path}
+                canCreate={canWrite && !!fb.path}
                 uploading={fb.uploading}
                 onNewFolder={() => setNewFolderOpen(true)}
                 onUpload={() => uploadRef.current?.click()}
