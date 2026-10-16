@@ -20,6 +20,18 @@ export async function PATCH(request: Request, { params }: Ctx) {
       if (typeof body.title !== "string" || !body.title.trim() || body.title.trim().length > 180) throw new ApiError(400, "invalid_request", "Title must be 1–180 characters");
       update.title = body.title.trim();
     }
+    if ("lead_id" in body) {
+      if (body.lead_id == null || body.lead_id === "") {
+        update.lead_id = null;
+      } else {
+        if (typeof body.lead_id !== "string" || body.lead_id.length > 64) throw new ApiError(400, "invalid_request", "Lead ID is invalid");
+        const { data: lead, error: leadError } = await db.from("leads").select("id")
+          .eq("id", body.lead_id).eq("workspace_id", account.workspace_id).maybeSingle();
+        if (leadError) throw new ApiError(500, "db_error", leadError.message);
+        if (!lead) throw new ApiError(400, "invalid_request", "Selected lead was not found in this workspace");
+        update.lead_id = lead.id;
+      }
+    }
     if ("notes" in body) {
       if (body.notes !== null && typeof body.notes !== "string") throw new ApiError(400, "invalid_request", "Notes must be text");
       const notes = typeof body.notes === "string" ? body.notes.trim() : null;
