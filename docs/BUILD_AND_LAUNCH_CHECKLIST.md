@@ -18,9 +18,10 @@
 - [x] Deployed and health-checked the dedicated staging Worker `ministaff-ai-dashboard-staging`. Latest Worker build/deploy/public Supabase binding sync/health-check passed on [run 38884117058](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884117058); standard CI passed on [run 38884159683](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38884159683). The live `/api/health` response is `{"ok":true,"service":"ministaff-ai"}`. Existing Pages project `ministaff-ai` and Worker `ministaff-forms` were preserved. This is staging only, not production.
 - [x] Updated Supabase session middleware so public setup/health paths do not instantiate a Supabase client when URL/public-key configuration is missing; protected paths still redirect to login. This is a bootstrap safeguard, not a live authentication test.
 - [x] Created a fresh dedicated Supabase project `ministaff-ai` in organization `JARVIS`, region `ap-south-1` (Mumbai), ref `qgxjjvhzggepfurjtpyd`, status `ACTIVE_HEALTHY`. The two older inactive projects were left untouched.
-- [x] Applied and verified all four migrations in order: `0001_init`, `0002_ministaff_sales_desk`, `0003_lead_webhooks_and_jobs`, `0004_lead_job_worker`. Migration history confirms all four; inventory confirms 8 public tables, all 8 with RLS enabled, 15 policies, and expected workspace/invitation functions.
+- [x] Applied and verified all five migrations in order: `0001_init`, `0002_ministaff_sales_desk`, `0003_lead_webhooks_and_jobs`, `0004_lead_job_worker`, and `0005_rpc_privilege_hardening`. Migration history confirms all five; inventory confirms 8 public tables, all 8 with RLS enabled, 15 policies, and expected workspace/invitation functions.
+- [x] Audited the 8 SECURITY DEFINER database functions. Applied migration 0005 to revoke EXECUTE from PUBLIC/anon/authenticated and retain service_role access; live SQL verified 0 browser-role executable functions out of 8 and zero direct table grants for anon/authenticated. Added a database privilege regression test to CI.
 - [x] Configured GitHub Actions secret `SUPABASE_SECRET_KEY` under the exact name expected by the workflow and verified the server-only key sync step passed on [Worker run 38887168927](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38887168927). A mistakenly named `SUPABASE` secret may remain but is unused. Live authentication/data-path tests remain open.
-- [ ] Add `AGENT37_API_KEY` as a **server-side secret** and verify Agent37 wallet status. The key must never be pasted into chat, committed to Git, or exposed in client code.
+- [ ] User has the Agent37 API key but must add it as GitHub Actions repository secret `AGENT37_API_KEY` under Settings → Secrets and variables → Actions. The staging Worker workflow now syncs it conditionally as a server-only Worker secret. After adding it, manually rerun the `MiniStaff Cloudflare Worker build` workflow; adding a repository secret alone does not trigger a workflow. Never paste the raw key into chat, commit it to Git, or expose it in client code. Then verify Agent37 wallet status before any billable smoke test.
 - [ ] Configure public site URL, auth redirect allow-list, email provider/templates, and verified sender for the selected environment.
 
 ## 1. Product and website
@@ -74,8 +75,10 @@
 - [ ] Verify invite creation, expiration, single use, invited-email matching, role assignment, acceptance, and revocation.
 - [ ] Test owner/admin/member permissions for every page, server action, and API route; missing membership should not reveal a workspace exists.
 - [ ] Use two test accounts and two workspaces to prove that leads, appointments, agents, usage, invites, webhooks, and files cannot cross tenant boundaries.
-- [ ] Audit privileged service-role database access: every read/write must follow session-derived identity and membership/role checks.
-- [ ] Audit Row Level Security, table grants, constraints, indexes, cascade behavior, and migration rollback strategy.
+- [x] Audit the SECURITY DEFINER RPC grants: the 8 workspace/invitation/queue functions are now not executable by browser roles, with the service-role grants verified live.
+- [ ] Finish auditing privileged service-role database access: every read/write must follow session-derived identity and membership/role checks.
+- [x] Verify all 8 public base tables have RLS enabled and anon/authenticated have no direct table grants.
+- [ ] Finish audit of constraints, indexes, cascade behavior, and migration rollback strategy.
 - [ ] Verify request validation, safe error messages, rate limiting, CSRF/origin assumptions, and server-only secret handling.
 - [ ] Verify account deletion/data export/retention behavior and document which third-party services process customer data.
 
@@ -191,3 +194,13 @@ Fill these fields in only after observing the actual deployment:
 - **Estimated launch readiness: 30–35%.** Current tally: 40 of 123 individual checkboxes are checked (about 33%). This is not an exact product-completeness metric because many boxes are live acceptance tests. Many launch-blocking live tests remain open.
 - Domain purchase is deferred by the user. Use the existing `workers.dev` staging URL for development. Do not treat `ministaff.dpdns.org` as registered or live; its Cloudflare zone is pending and separate from a future purchased .IN domain.
 - Next work: auth/email delivery end-to-end; two-account/two-workspace permission and isolation tests; Agent37 server-side secret and budget-aware smoke test; webhook/idempotency/queue and appointment tests; authoritative server-side quota/cost protections; then responsive/accessibility, monitoring/backups, legal/support, production DNS/deploy, and rollback testing.
+
+
+## 14. Agent37 API key handoff and recent hardening (2026-10-16)
+- [x] Added a dedicated staging Worker workflow step that syncs the GitHub Actions secret `AGENT37_API_KEY` via `wrangler secret put`, without printing the value. It runs only when the named secret exists and the Cloudflare token is configured.
+- [ ] User must add `AGENT37_API_KEY` to repository Actions secrets and manually rerun the Worker workflow to sync it. The user must not paste it into chat.
+- [x] Applied migration `0005_rpc_privilege_hardening` to the live Supabase project and verified it appears in migration history as version `20261016114852`.
+- [x] Read-only SQL verified 8 targeted SECURITY DEFINER routines cannot be executed by `anon` or `authenticated`, remain executable by `service_role`, and there are zero direct table grants to `anon`/`authenticated`.
+- [x] Improved auth helper failure behavior when membership/agent lookups return database errors, tightened role policy functions and tests, fixed workspace deletion to keep the workspace if provider-agent deletion fails, and required membership validation before self-removal from a workspace.
+- [x] CI passed TypeScript, security regression tests (including new SQL privilege regression), and production build on [run 38896872081](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38896872081) for commit `281f87d11db50f76a23148aa83929a7f5bd7dcdd`; a newer code commit then tightened workspace authorization/delete behavior and is under verification.
+- [ ] Verify latest CI + Worker workflow after the newer authorization changes; only a successful check counts as complete.
