@@ -7,22 +7,23 @@
 
 - [x] Created an isolated rebuild branch; the existing sales-desk branch and default branch remain untouched.
 - [x] Installed the locked dependencies in a cloud coding workspace with `npm ci`.
-- [x] TypeScript check passed on the branch baseline with `npm run typecheck`.
-- [x] Inspected the repository: it already has Supabase SSR authentication, Agent37 server-side integration, workspace roles, agents, leads, appointments, usage, members/settings screens, and lead webhook ingestion code. This rebuild should complete and verify those parts rather than silently discarding them.
-- [x] Confirmed a prior GitHub Actions CI run succeeded on the previous branch; that does **not** verify this rebuild branch.
-- [ ] Get a clean production build for this branch. A local cloud build attempt timed out, so this remains unverified pending CI.
-- [ ] Identify and verify the deployed MiniStaff website URL and hosting project.
+- [x] Inspected the repository and kept the pre-existing sales-desk/default branches untouched.
+- [x] The rebuild branch passes `npm ci`, TypeScript `npm run typecheck`, `npm run test:security`, and the Next.js production build on GitHub Actions for commit `a931f71fcc23cb0ba14079c12966971c02f66ee6` ([CI run](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38864758983)).
+- [x] Added a branded marketing site, signup entry links, metadata/app icon, robots policy, branded 404, `/api/health`, redirect regression tests, and guarded lead triage queue worker code.
+- [ ] Review all dependency audit findings. CI reported 10 npm audit findings (1 critical, 4 high, 4 moderate, 1 low); fix and retest without blindly applying breaking dependency upgrades.
+- [ ] Identify and verify the deployed full-stack MiniStaff URL. An existing Cloudflare Pages project was located, but its current `dist` output configuration is not evidence that Next.js server routes work there.
 - [ ] Choose an active Supabase environment. The connected account returned two projects with status `INACTIVE`; neither has been modified.
-- [ ] Restore/choose the right Supabase project and verify its schema/migration state before applying any migration.
-- [ ] Re-authorize Vercel. The connected Vercel credential currently returns HTTP 403 `invalidToken`.
+- [ ] Restore/select the correct Supabase project and verify schema/migration state before applying migrations.
+- [ ] Re-authorize Vercel using the connection link in the handoff; existing Vercel credentials returned HTTP 403 `invalidToken`.
 - [ ] Configure a dedicated deployment target. Do **not** deploy to or overwrite the existing Cloudflare Worker `ministaff-forms`.
 - [ ] Add `AGENT37_API_KEY` as a **server-side secret** and verify Agent37 wallet status. The key must never be pasted into chat, committed to Git, or exposed in client code.
 - [ ] Configure public site URL, auth redirect allow-list, email provider/templates, and verified sender for the selected environment.
 
 ## 1. Product and website
 
-- [x] Add a MiniStaff-branded public homepage with clear product areas and links to sign in.
-- [ ] Review all pages for MiniStaff branding; remove leftover starter-kit labels, logos, demos, and copy.
+- [x] Add a MiniStaff-branded public homepage with clear product areas and links to sign in and create an account.
+- [x] Add signup-mode query handling so homepage account-creation links land on the signup form.
+- [ ] Review all dashboard pages for MiniStaff branding; remove leftover starter-kit labels, logos, demos, and copy.
 - [ ] Check mobile/tablet/desktop layouts, navigation, empty/loading/error states, keyboard navigation, and contrast.
 - [ ] Verify every public and in-app link: sign in, create account, dashboard, lead desk, appointments, usage, settings, privacy, and terms.
 - [ ] Review product claims against the features actually enabled in the deployment; label preview/sample data clearly.
@@ -43,7 +44,8 @@
 - [ ] Confirm wrong password, unknown email, disabled user, unverified email, and rate-limited requests fail safely without leaking account details.
 - [ ] Test sign out; confirm protected pages and APIs reject the cleared session.
 - [ ] Request a password reset, open the link, set a new password, and verify the old password no longer works.
-- [ ] Verify all redirect values are same-site paths only; reject external URLs and protocol-relative paths.
+- [x] Add regression coverage for safe redirect handling; automated test checks internal paths and rejects external, protocol-relative, backslash, and control-character paths.
+- [ ] Verify redirects and email confirmation live on the selected production host.
 - [ ] Test duplicate signup, email case/whitespace handling, minimum password length, and form validation.
 - [ ] Test resend-confirmation behavior (if offered), throttling, and neutral user-facing responses.
 - [ ] Verify no auth tokens, service-role keys, Agent37 keys, or provider secrets are rendered into HTML, logs, client bundles, or URLs.
@@ -136,7 +138,7 @@ Fill these fields in only after observing the actual deployment:
 - **Deployment provider/project:** _not verified_
 - **Supabase project ref/status:** _not selected; discovered projects were inactive_
 - **Agent37 create/chat/delete smoke run:** _not run; requires server key and budget approval_
-- **Latest CI run for this branch:** _pending_
-- **Final commit SHA:** _pending_
+- **Last verified CI run:** [run 38864758983](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38864758983) — success for commit `a931f71fcc23cb0ba14079c12966971c02f66ee6` before this checklist refresh.
+- **Checklist refresh commit / CI:** pending until the doc-only change is validated.
 - **Verified by / date:** _pending_
 
