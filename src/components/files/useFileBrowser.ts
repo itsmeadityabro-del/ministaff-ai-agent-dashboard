@@ -133,7 +133,7 @@ export function useFileBrowser(agentId: string, canWrite = true) {
       // it was in flight.
       if (pathRef.current === path) await load(path);
     },
-    [path, putFile, load]
+    [canWrite, path, putFile, load]
   );
 
   // Flat upload (the multi-file picker + drag-drop): each file lands by its basename.
@@ -171,7 +171,7 @@ export function useFileBrowser(agentId: string, canWrite = true) {
         toast.error((e as Error).message || "Couldn't create the folder.");
       }
     },
-    [agentId, path, load]
+    [agentId, path, load, canWrite]
   );
 
   // Rename in place: the entry lives in the current dir, so `to` is the new basename joined onto it.
@@ -194,6 +194,7 @@ export function useFileBrowser(agentId: string, canWrite = true) {
 
   const remove = useCallback(
     async (entry: FileEntry) => {
+      if (!canWrite) return;
       try {
         await apiFetch(`/api/agents/${agentId}/files?path=${encodeURIComponent(entry.path)}`, { method: "DELETE" });
         toast.success(`Deleted ${entry.name}`);
@@ -226,8 +227,8 @@ export function useFileBrowser(agentId: string, canWrite = true) {
     showHidden,
     setShowHidden,
     uploading: uploading > 0,
-    dragOver,
-    dragHandlers,
+    dragOver: canWrite && dragOver,
+    dragHandlers: canWrite ? dragHandlers : {},
     navigate,
     refresh,
     goUp,
