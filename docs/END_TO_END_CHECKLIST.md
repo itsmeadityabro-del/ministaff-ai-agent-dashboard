@@ -7,7 +7,7 @@ Last reviewed: 2026-10-16 (Asia/Kolkata). This is the canonical dashboard/workfl
 ## Verified evidence on the GitHub branch
 
 - [x] GitHub Actions CI passed on commit 158b2965caf24b3b7f39f319d143370fee51619b on 2026-10-16: npm ci, npm test, npm run typecheck, and npm run build. [Workflow run](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38935121292).
-- [x] Non-billable Node unit/contract tests passed in the same CI run, including a regression check that the customer API cannot create or delete a subscription-managed Agent37 instance.
+- [x] Non-billable Node unit/contract tests passed in the same CI run, including a regression check that the customer API cannot create/delete a subscription-managed Agent37 instance, delete its workspace, expand workspaces/teams, or raise budget/compute beyond plan controls.
 - [x] Source and Cloudflare metadata reviewed on 2026-10-16.
 - [ ] Cloudflare staging build matches the reviewed GitHub commit; no deployment has been verified from this branch.
 - [ ] Supabase staging migrations and customer end-to-end tests.
@@ -23,15 +23,15 @@ Last reviewed: 2026-10-16 (Asia/Kolkata). This is the canonical dashboard/workfl
 
 ## Database and authentication
 
-- [ ] **BLOCKED — Apply migrations:** apply `0002_ministaff_customer_access.sql` and `0003_ministaff_workflows.sql` to the intended Supabase staging project. Local/GitHub SQL files do not imply remote application.
+- [ ] **BLOCKED — Apply migrations:** apply `0002_ministaff_customer_access.sql`, `0003_ministaff_workflows.sql`, and `0004_ministaff_api_only_access.sql` to the intended Supabase staging project. Local/GitHub SQL files do not imply remote application.
 - [ ] **TODO — Customer bootstrap:** test confirmed purchase email, active entitlement, account linking, bootstrap RPC, first workspace and agent mirror.
 - [ ] **TODO — Negative auth cases:** no session, unconfirmed email, inactive/review entitlement, account linked to another user, invalid route IDs.
 - [ ] **TODO — Tenant isolation:** two separate test accounts; prove neither can read/update/delete another customer's leads, appointments, agent or usage.
-- [ ] **TODO — DB role check:** confirm browser roles cannot read/write customer tables and server service-role calls are only behind authenticated, workspace-scoped route handlers.
+- [ ] **TODO — DB role check:** confirm migration 0004 removes browser-role table and RPC access and all service-role calls are only behind authenticated, account/workspace-scoped route handlers.
 
 ## Agent lifecycle and integrations
 
-- [ ] **BLOCKED — Authorized Agent37 smoke:** create a test instance, wait for health, send one chat, delete it and confirm cleanup. Needs an explicitly approved small spend budget and funded wallet.
+- [ ] **BLOCKED — Authorized Agent37 smoke:** verify a dedicated staging instance's health/chat/lifecycle. Provision and deprovision test instances only through the approved support/Worker lifecycle, not customer delete routes; requires an explicitly approved small spend budget and funded wallet.
 - [ ] **TODO — Chat/files:** real chat/streaming/history and file list/read/write/archive.
 - [ ] **TODO — Lifecycle:** status refresh, start/stop/restart and safe failure behavior; avoid deleting the customer's provisioned staffer.
 - [ ] **TODO — Integrations:** validate one Composio connection and one Telegram/WhatsApp channel with test credentials.
@@ -47,7 +47,7 @@ Last reviewed: 2026-10-16 (Asia/Kolkata). This is the canonical dashboard/workfl
 ## Usage, plan limits, billing
 
 - [ ] **CODED — Usage accuracy:** dashboard maps Agent37 spend, input/output tokens, and call counts; compare displayed values against the live provider for the same period.
-- [ ] **CODED — Plan enforcement:** activation Worker assigns provider-side plan budgets and the dashboard reports remaining budget; verify actual provider cap enforcement and entitlement changes in staging. A dashboard meter alone does not enforce spending limits.
+- [ ] **CODED — Plan enforcement:** activation Worker assigns provider-side plan budgets; dashboard budget writes are capped at $5/$10/$25 per Plus/Pro/Max tier and customer resizing is disabled. Verify actual provider caps, plan mapping, and entitlement changes in staging; a dashboard meter alone does not enforce spending limits.
 - [ ] **TODO — BYOK accounting:** confirm external subscription/API use is not falsely represented as Agent37 managed spend.
 - [ ] **BLOCKED — Gumroad flow:** Plus/Pro/Max checkout, valid/invalid/refunded/cancelled license, activation, idempotency, provisioning and cancellation with an approved test purchase. Worker-specific steps are tracked in the [website/Worker release checklist](https://github.com/itsmeadityabro-del/ministaff-ai-website/blob/codex/ministaff-e2e-checklists/docs/WORKER_RELEASE_CHECKLIST.md).
 
