@@ -33,7 +33,7 @@ Requirements: Node.js 20+ and npm.
 5. Run static type checks: `npm run typecheck`
 6. Run the production build: `npm run build`
 
-The repository's `npm run setup` script can help configure a Supabase project, but it requires a valid Supabase access token and Agent37 credential as documented in `SETUP.md`. Do not use an inactive or production database until its ownership and data have been verified.
+The repository's `npm run setup` script can help configure a Supabase project, but it requires a valid Supabase access token and Agent37 credential as documented in `SETUP.md`. The durable lead queue worker is server-side and stays disabled unless `MINISTAFF_AUTO_TRIAGE_ENABLED=true` is set in the host's environment; it also requires migration `0004_lead_job_worker.sql` and `MINISTAFF_CRON_SECRET` (or the platform's `CRON_SECRET`). Do not use an inactive or production database until its ownership and data have been verified.
 
 ### Environment values
 

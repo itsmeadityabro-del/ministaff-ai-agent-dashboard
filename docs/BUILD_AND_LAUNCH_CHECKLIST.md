@@ -77,7 +77,9 @@
 - [ ] Apply the migrations to the chosen active Supabase project and verify each table/index/policy afterward.
 - [ ] Test valid webhook request, missing/wrong secret, malformed JSON, oversized body, replay, stable idempotency key, and rate limiting.
 - [ ] Test duplicate webhook delivery does not create duplicate leads or duplicate jobs.
-- [ ] Implement/verify the actual queue worker: atomic claim/lease, Agent37 job execution, retries/backoff, stale-lock recovery, poison-job handling, and operator-visible failures.
+- [x] Added the server-side cron worker and atomic claim/lease RPC with bounded attempts, exponential backoff, stale-lock recovery, and operator-visible job results in code.
+- [x] Automatic lead triage is opt-in and off by default; the worker stores bounded classification output for human review and does not send messages or book appointments.
+- [ ] Configure `MINISTAFF_CRON_SECRET` (or `CRON_SECRET`) and deliberately enable `MINISTAFF_AUTO_TRIAGE_ENABLED=true` only after staging migrations, a test workspace, and Agent37 cost checks pass.
 - [ ] Confirm webhook success is returned only after the durable write succeeds; do not depend on a background process that may be terminated with the request.
 - [ ] Test lead qualification/status changes, search/filter, notes, contact fields, error recovery, and workspace isolation.
 - [ ] Verify the external website form can submit to the live endpoint and that the lead appears in the intended workspace.

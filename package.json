@@ -9,7 +9,7 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "smoke": "node scripts/smoke.mjs",
-    "test:security": "node --test scripts/security.test.mjs"
+    "test:security": "node --test scripts/security.test.mjs scripts/lead-triage.test.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.6",

@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     await requireMember(db, workspaceId, user.id);
 
     const { data, error } = await db.from("lead_jobs")
-      .select("id,workspace_id,lead_id,idempotency_key,status,attempt_count,available_at,locked_at,last_error,created_at,updated_at,leads(name,email,source)")
+      .select("id,workspace_id,lead_id,idempotency_key,status,attempt_count,available_at,locked_at,last_error,result,created_at,updated_at,leads(name,email,source)")
       .eq("workspace_id", workspaceId)
       .order("created_at", { ascending: false })
       .limit(100);

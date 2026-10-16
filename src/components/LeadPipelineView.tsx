@@ -22,6 +22,7 @@ interface LeadJob {
   id: string; lead_id: string; status: "queued" | "processing" | "awaiting_review" | "completed" | "failed";
   attempt_count: number; created_at: string; updated_at: string; lead_name: string;
   lead_email: string | null; lead_source: string | null; last_error: string | null;
+  result: null | { qualification?: string; temperature?: LeadTemperature; confidence?: number; summary?: string; suggested_next_step?: string; reason?: string; raw_output?: string; needs_review?: boolean };
 }
 const STATUSES: LeadStatus[] = ["new", "qualified", "contacted", "booked", "lost"];
 const TEMPERATURES: LeadTemperature[] = ["hot", "warm", "cold"];
@@ -122,13 +123,13 @@ export function LeadPipelineView() {
           <div className="divide-y">
             {jobs.slice(0, 8).map((job) => (
               <div key={job.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-                <div className="min-w-0"><p className="truncate text-sm font-medium">{job.lead_name}</p><p className="text-xs text-muted-foreground">{job.lead_source || "webhook"} · {new Date(job.created_at).toLocaleString()} · {job.attempt_count} attempts</p></div>
+                <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{job.lead_name}</p><p className="text-xs text-muted-foreground">{job.lead_source || "webhook"} · {new Date(job.created_at).toLocaleString()} · {job.attempt_count} attempts</p>{job.result?.summary && <p className="mt-1 text-sm text-foreground">{job.result.summary}</p>}{job.result?.suggested_next_step && <p className="mt-1 text-xs text-muted-foreground">Suggested next step: {job.result.suggested_next_step}</p>}{job.result?.reason && <p className="mt-1 text-xs text-amber-700">{job.result.reason}</p>}{job.result?.raw_output && <details className="mt-1"><summary className="cursor-pointer text-xs text-muted-foreground">Review raw result</summary><pre className="mt-1 whitespace-pre-wrap break-words text-xs">{job.result.raw_output}</pre></details>}{job.last_error && <p className="mt-1 text-xs text-destructive">Latest issue: {job.last_error}</p>}</div>
                 <Badge variant={job.status === "completed" ? "success" : job.status === "failed" ? "destructive" : job.status === "awaiting_review" ? "warning" : "secondary"}>{job.status.replace("_", " ")}</Badge>
               </div>
             ))}
           </div>
         )}
-        <p className="border-t bg-muted/20 px-4 py-3 text-xs text-muted-foreground">The durable queue is implemented; automatic qualification and retry scheduling still require the background worker and Agent37 credentials.</p>
+        <p className="border-t bg-muted/20 px-4 py-3 text-xs text-muted-foreground">Worker code is available but remains off until the deployment owner enables MINISTAFF_AUTO_TRIAGE_ENABLED. Triage results wait for human review; this worker does not send messages or book appointments.</p>
       </section>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
