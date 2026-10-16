@@ -49,7 +49,7 @@ const authPolicyCompiled = ts.transpileModule(authPolicySource, {
 }).outputText;
 const authPolicyExports = Object.create(null);
 vm.runInNewContext(authPolicyCompiled, { exports: authPolicyExports }, { timeout: 1000 });
-const { hasVerifiedEmail, hasWorkspaceAdminRole, hasWorkspaceMembership } = authPolicyExports;
+const { hasVerifiedEmail, hasWorkspaceAdminRole, hasWorkspaceMembership, isApiRoutePath, shouldRedirectToLogin } = authPolicyExports;
 
 test("protected access requires a verified email timestamp", () => {
   assert.equal(hasVerifiedEmail(null), false);
@@ -72,6 +72,18 @@ test("workspace membership accepts only known membership roles and admin checks 
   assert.equal(hasWorkspaceMembership("member"), true);
   assert.equal(hasWorkspaceAdminRole("admin"), true);
   assert.equal(hasWorkspaceAdminRole("member"), false);
+});
+
+test("unauthenticated APIs reach route-level JSON guards while HTML pages redirect to login", () => {
+  assert.equal(isApiRoutePath("/api"), true);
+  assert.equal(isApiRoutePath("/api/leads"), true);
+  assert.equal(isApiRoutePath("/api/cron/lead-jobs"), true);
+  assert.equal(isApiRoutePath("/dashboard"), false);
+  assert.equal(shouldRedirectToLogin("/dashboard", false, false), true);
+  assert.equal(shouldRedirectToLogin("/api/leads", false, false), false);
+  assert.equal(shouldRedirectToLogin("/api/cron/lead-jobs", false, false), false);
+  assert.equal(shouldRedirectToLogin("/api/health", true, false), false);
+  assert.equal(shouldRedirectToLogin("/dashboard", false, true), false);
 });
 
 
