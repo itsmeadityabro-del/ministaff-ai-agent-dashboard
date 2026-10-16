@@ -87,3 +87,11 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 - No registration was submitted; `ministaff.dpdns.org` is not yet owned/registered in the DigitalPlat account. No payment was made. The Cloudflare zone is pending and DNS delegation is not active. Do not claim the custom domain is live.
 - After the user completes official reauthentication, resume the registration flow using free slot + exact Cloudflare nameservers, verify domain registration and Cloudflare activation, then decide/configure the domain's staging hostname and email DNS. No production launch yet.
 
+
+
+## Alternative paid domain option — 2026-10-16
+- User is considering purchasing `ministaff.in` or `ministaffai.in` for ₹99 instead of relying on the blocked DigitalPlat free-domain flow.
+- Recommendation: prefer `ministaff.in` as the primary brand URL if available for ₹99 and the renewal price is acceptable; shorter and cleaner, with the product itself branded as MiniStaff AI. Do not claim availability/ownership without checking the registrar's checkout and final account domain list.
+- Official .IN Registry says its wholesale second-level .IN price is ₹500 per domain year and registrars set their own retail prices; therefore ₹99 may be a first-year promotion. Verify renewal cost, term, taxes/fees, and auto-renew before payment. Source: https://www.registry.in/tariff
+- User is a minor; parent/legal guardian should oversee purchase and make sure the registrant/contract details are accurate and the provider's terms are followed.
+- If purchased, add `ministaff.in` as a **separate** Cloudflare zone (do not use the existing pending `ministaff.dpdns.org` zone), point its assigned nameservers at the registrar, and only then connect a staging hostname to the existing staging Worker. DigitalPlat candidate remains unregistered; keep its pending Cloudflare zone untouched unless user later asks to remove it.
