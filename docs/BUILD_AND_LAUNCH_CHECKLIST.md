@@ -11,11 +11,13 @@
 - [x] The rebuild branch passes `npm ci`, TypeScript `npm run typecheck`, `npm run test:security`, and the Next.js production build on GitHub Actions for commit `a931f71fcc23cb0ba14079c12966971c02f66ee6` ([CI run](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38864758983)).
 - [x] Added a branded marketing site, signup entry links, metadata/app icon, robots policy, branded 404, `/api/health`, redirect regression tests, and guarded lead triage queue worker code.
 - [ ] Review all dependency audit findings. CI reported 10 npm audit findings (1 critical, 4 high, 4 moderate, 1 low); fix and retest without blindly applying breaking dependency upgrades.
-- [ ] Identify and verify the deployed full-stack MiniStaff URL. An existing Cloudflare Pages project was located, but its current `dist` output configuration is not evidence that Next.js server routes work there.
+- [x] Deployment decision corrected: do not use Vercel Hobby for commercial MiniStaff. Use Cloudflare for this app instead.
+- [x] Located Cloudflare Pages project `ministaff-ai.pages.dev`; its current `dist` configuration is static output and is not evidence that the Next.js server routes run there.
+- [x] Ran Cloudflare's official vinext compatibility scanner in the isolated cloud checkout: 100% reported compatibility (14 supported, 0 partial, 0 issues). This scan is not a runtime build or deployment pass.
+- [ ] Complete and validate a vinext/Cloudflare Workers production build on CI with Node 22; the limited 1 GB cloud workspace stalled during the Worker build, so no successful full Worker build is claimed.
+- [ ] Create/deploy only a separate staging Worker (planned name `ministaff-ai-dashboard-staging`); leave existing Pages project `ministaff-ai` and Worker `ministaff-forms` untouched.
 - [ ] Choose an active Supabase environment. The connected account returned two projects with status `INACTIVE`; neither has been modified.
 - [ ] Restore/select the correct Supabase project and verify schema/migration state before applying migrations.
-- [ ] Re-authorize Vercel using the connection link in the handoff; existing Vercel credentials returned HTTP 403 `invalidToken`.
-- [ ] Configure a dedicated deployment target. Do **not** deploy to or overwrite the existing Cloudflare Worker `ministaff-forms`.
 - [ ] Add `AGENT37_API_KEY` as a **server-side secret** and verify Agent37 wallet status. The key must never be pasted into chat, committed to Git, or exposed in client code.
 - [ ] Configure public site URL, auth redirect allow-list, email provider/templates, and verified sender for the selected environment.
 
@@ -106,8 +108,9 @@
 
 ## 8. Deployment and runtime operations
 
-- [ ] Select the actual host and connect the GitHub repository to a dedicated staging project.
-- [ ] Configure production build command, Node/runtime compatibility, region, environment variables, build cache, and server function limits.
+- [ ] Host the full-stack app on Cloudflare Workers using vinext after the Worker build passes CI; keep the existing static Pages project separate.
+- [ ] Connect the GitHub repository to a dedicated Cloudflare Workers staging target (or use a verified CI deployment path).
+- [ ] Configure Node 22 build/runtime assumptions, environment variables, cache behavior, and Worker request/runtime limits.
 - [ ] Add all required values as platform secrets: Supabase URL/public key/service role, Agent37 key, cron/worker token, site URL, and any enabled provider keys.
 - [ ] Ensure secret names/values are not committed, printed in logs, or included in client-prefixed variables unless explicitly public.
 - [ ] Apply reviewed, versioned database migrations to staging before serving traffic.
@@ -135,7 +138,8 @@ Fill these fields in only after observing the actual deployment:
 
 - **Preview URL:** _not verified_
 - **Production URL:** _not identified_
-- **Deployment provider/project:** _not verified_
+- **Deployment provider/project:** _Cloudflare Workers selected; dedicated staging Worker not deployed yet_
+- **Cloudflare compatibility scan:** _100% report; production Worker build still unverified_
 - **Supabase project ref/status:** _not selected; discovered projects were inactive_
 - **Agent37 create/chat/delete smoke run:** _not run; requires server key and budget approval_
 - **Last verified CI run:** [run 38864758983](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38864758983) — success for commit `a931f71fcc23cb0ba14079c12966971c02f66ee6` before this checklist refresh.
