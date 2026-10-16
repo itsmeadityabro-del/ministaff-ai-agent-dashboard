@@ -15,11 +15,12 @@ export async function GET(_request: Request, { params }: Ctx) {
 
     let invitations: Invitation[] = [];
     if (role === "admin") {
-      const { data: inv } = await db
+      const { data: inv, error: invitationError } = await db
         .from("invitations")
         .select("*")
         .eq("workspace_id", id)
         .order("created_at", { ascending: false });
+      if (invitationError) throw new ApiError(500, "db_error", "Unable to load workspace invitations");
       invitations = (inv as Invitation[]) ?? [];
     }
 
