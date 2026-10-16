@@ -15,7 +15,8 @@
 - [x] Located Cloudflare Pages project `ministaff-ai.pages.dev`; its current `dist` configuration is static output and is not evidence that the Next.js server routes run there.
 - [x] Ran Cloudflare's official vinext compatibility scanner in the isolated cloud checkout: 100% reported compatibility (14 supported, 0 partial, 0 issues). This scan is not a runtime build or deployment pass.
 - [x] Verified the full vinext/Cloudflare Worker production build, production-dependency audit gate, and dry-run deploy validation on GitHub Actions with Node 22 at code commit `ed29080d2bc676d492b49f5e6bc3c0e73a9875d3`: Worker build run [38874231795](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38874231795), ordinary CI run [38874231829](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38874231829). Both passed; artifact [12034302642](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38874231795/artifacts/12034302642) contains the generated Worker output and audit reports. This verifies build output and dry-run only; no live Worker deployment was performed.
-- [ ] Deploy and health-check only the dedicated staging Worker `ministaff-ai-dashboard-staging`; the guarded CI deploy step currently reports the GitHub repository secret `CLOUDFLARE_API_TOKEN` is absent, so no Worker was published. Preserve the existing Pages project `ministaff-ai` and Worker `ministaff-forms`.
+- [x] Deployed and health-checked the dedicated staging Worker `ministaff-ai-dashboard-staging` after configuring the GitHub repository secret `CLOUDFLARE_API_TOKEN`. Worker workflow [38881986997](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38881986997) and CI [38881986547](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38881986547) passed for code commit `c718f43c78bdb6b65783e764eb645652b9d4b208`; the live `/api/health` response was `{"ok":true,"service":"ministaff-ai"}`. The first probe returned a transient HTTP 500 and the subsequent retry passed. Existing Pages project `ministaff-ai` and Worker `ministaff-forms` were preserved; this is staging only, not production.
+- [x] Updated Supabase session middleware so public setup/health paths do not instantiate a Supabase client when URL/public-key configuration is missing; protected paths still redirect to login. This is a bootstrap safeguard, not a live authentication test.
 - [ ] Choose an active Supabase environment. The connected account returned two projects with status `INACTIVE`; neither has been modified.
 - [ ] Restore/select the correct Supabase project and verify schema/migration state before applying migrations.
 - [ ] Add `AGENT37_API_KEY` as a **server-side secret** and verify Agent37 wallet status. The key must never be pasted into chat, committed to Git, or exposed in client code.
@@ -108,8 +109,8 @@
 
 ## 8. Deployment and runtime operations
 
-- [ ] Publish the full-stack app to Cloudflare Workers using the verified vinext build and confirm the live `/api/health` response; keep existing static Pages project separate.
-- [x] Added a dedicated Cloudflare Worker build/dry-run workflow and guarded staging publish + health-check steps on `build/ministaff-from-scratch`; publishing remains blocked until the repository secret `CLOUDFLARE_API_TOKEN` is configured.
+- [x] Deploy the MiniStaff app to the dedicated Cloudflare staging Worker and verify its live `/api/health` response. This confirms staging runtime reachability only; production release, Supabase/Auth, and Agent37 integrations remain unverified.
+- [x] Added a dedicated Cloudflare Worker build/dry-run workflow and guarded staging publish + health-check steps on `build/ministaff-from-scratch`. The repository secret `CLOUDFLARE_API_TOKEN` is configured, and the staging publish plus health check passed in [Worker run 38881986997](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38881986997).
 - [ ] Configure Node 22 build/runtime assumptions, environment variables, cache behavior, and Worker request/runtime limits.
 - [ ] Add all required values as platform secrets: Supabase URL/public key/service role, Agent37 key, cron/worker token, site URL, and any enabled provider keys.
 - [ ] Ensure secret names/values are not committed, printed in logs, or included in client-prefixed variables unless explicitly public.
@@ -124,7 +125,7 @@
 ## 9. Automated verification & release gate
 
 - [x] Existing CI workflow runs dependency installation, TypeScript typecheck, and Next.js production build.
-- [x] Verified the rebuild branch runs both standard CI and the Cloudflare Worker build workflow on push; latest successful runs are [CI 38874231829](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38874231829) and [Worker build 38874231795](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38874231795).
+- [x] Verified the rebuild branch runs both standard CI and the Cloudflare Worker build workflow on push; the latest code-change validations are [CI 38881986547](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38881986547) and [Worker deploy/health 38881986997](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38881986997).
 - [ ] Add automated tests for redirect safety, auth callback paths, webhook auth/idempotency, permission checks, quota enforcement, and queue retry transitions.
 - [ ] Run `npm ci`, `npm run typecheck`, `npm run build`, and non-billable smoke tests on the final candidate commit.
 - [ ] Run browser E2E against the preview deployment for signup → email confirmation → login → create workspace → create lead → enqueue/process job → appointment → usage.
@@ -136,13 +137,13 @@
 
 Fill these fields in only after observing the actual deployment:
 
-- **Preview URL:** _not verified_
+- **Staging URL:** https://ministaff-ai-dashboard-staging.itsmeadityabro.workers.dev — live `/api/health` verified by workflow run [38881986997](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38881986997)
 - **Production URL:** _not identified_
-- **Deployment provider/project:** Cloudflare Workers selected; source config targets `ministaff-ai-dashboard-staging`. Not deployed because `CLOUDFLARE_API_TOKEN` is not set as a GitHub repository secret.
-- **Cloudflare compatibility/build:** 100% compatibility scan; Node 22 Worker production build and dry-run passed on [run 38874231795](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38874231795). No live Worker deployment or health response has been verified.
+- **Deployment provider/project:** Cloudflare Workers; `ministaff-ai-dashboard-staging` is deployed and its `/api/health` check passed. Production hostname remains unidentified; this is not a production release.
+- **Cloudflare compatibility/build:** 100% compatibility scan. Node 22 Worker build, live staging publish, and health check passed on [run 38881986997](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38881986997); ordinary CI passed on [run 38881986547](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38881986547).
 - **Supabase project ref/status:** _not selected; discovered projects were inactive_
 - **Agent37 create/chat/delete smoke run:** _not run; requires server key and budget approval_
-- **Last verified full CI run:** [run 38874231829](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38874231829) — success on code commit `ed29080d2bc676d492b49f5e6bc3c0e73a9875d3`, including dependency installation, typecheck, security regression tests, and Next.js build.
-- **Checklist refresh commit / CI:** this documentation update records the latest verified code commit and CI evidence; the source code remains the tested commit `ed29080d2bc676d492b49f5e6bc3c0e73a9875d3`.
+- **Last verified full CI run:** [run 38881986547](https://github.com/itsmeadityabro-del/ministaff-ai-agent-dashboard/actions/runs/38881986547) — success on code commit `c718f43c78bdb6b65783e764eb645652b9d4b208`, including dependency installation, TypeScript typecheck, security regression tests, and Next.js build.
+- **Checklist refresh commit / CI:** this checklist records the code commit `c718f43c78bdb6b65783e764eb645652b9d4b208` and successful staging/CI evidence above. Supabase activation/migrations, authentication tests, Agent37 connectivity, and production release remain open.
 - **Verified by / date:** _pending_
 
