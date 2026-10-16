@@ -1,5 +1,5 @@
 import { requireMiniStaffAccount } from "@/lib/auth";
-import { ApiError, handleError, json, readJson } from "@/lib/http";
+import { ApiError, handleError, json } from "@/lib/http";
 import type { WorkspaceWithRole } from "@/lib/types";
 
 export async function GET() {
