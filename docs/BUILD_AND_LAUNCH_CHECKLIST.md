@@ -165,8 +165,9 @@ Fill these fields in only after observing the actual deployment:
 
 
 ## 11. DigitalPlat domain registration checkpoint (2026-10-16)
-- [x] Opened the authenticated DigitalPlat registration flow; confirmed the dashboard shows one free domain slot available.
-- [ ] Confirm this is the correct account the user is authorized to manage before accepting policies or registering. The displayed profile label did not match the known ChatGPT profile, so registration is paused.
-- [ ] Check live availability and rules for `ministaff.dpdns.org` or another permitted suffix. Current dashboard notice says .US.KG and .XX.KG registrations are temporarily paused for accounts below Power.
-- [ ] Read/acknowledge required policies only after account/ownership is confirmed; do not agree to unexpected charges or buy a slot/bundle.
-- [ ] Verify the exact domain appears in Domain List after registration. Until then, no domain is registered and no Cloudflare zone or DNS changes should be made.
+- [x] User confirmed this is the account to register MiniStaff's domain under and confirmed authorization to manage it.
+- [x] Opened the authenticated DigitalPlat registration flow; the dashboard showed one free slot available, no paid slots, and no plan slots.
+- [ ] Check live availability for `ministaff.dpdns.org` or another supported suffix and re-check live policies. Dashboard notice says .US.KG and .XX.KG registrations are paused for accounts below Power.
+- [ ] Read applicable policies and verify age/account eligibility before acknowledging; do not accept unexpected terms or buy a slot/bundle.
+- [ ] Create the external DNS zone only after the candidate is confirmed, record the exact nameservers, and enter those at DigitalPlat.
+- [ ] Verify the exact domain appears in Domain List after registration. Until then, no domain is registered and no DNS changes have been made.
