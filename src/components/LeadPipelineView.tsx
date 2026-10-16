@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LeadWebhookCard } from "@/components/LeadWebhookCard";
 
 type LeadStatus = "new" | "qualified" | "contacted" | "booked" | "lost";
 type LeadTemperature = "hot" | "warm" | "cold";
@@ -100,6 +101,8 @@ export function LeadPipelineView() {
         <Metric label="Hot leads" value={String(hotCount)} detail="Prioritise follow-up" />
         <Metric label="Qualified" value={String(qualifiedCount)} detail={`${bookedCount} booked so far`} />
       </div>
+      <LeadWebhookCard />
+
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
         <section className="min-w-0 space-y-3">
           <div className="flex flex-wrap gap-2">
