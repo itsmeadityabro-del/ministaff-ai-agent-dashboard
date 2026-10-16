@@ -18,6 +18,11 @@ interface Lead {
   email: string | null; phone: string | null; source: string; status: LeadStatus;
   temperature: LeadTemperature; notes: string | null; created_at: string;
 }
+interface LeadJob {
+  id: string; lead_id: string; status: "queued" | "processing" | "awaiting_review" | "completed" | "failed";
+  attempt_count: number; created_at: string; updated_at: string; lead_name: string;
+  lead_email: string | null; lead_source: string | null; last_error: string | null;
+}
 const STATUSES: LeadStatus[] = ["new", "qualified", "contacted", "booked", "lost"];
 const TEMPERATURES: LeadTemperature[] = ["hot", "warm", "cold"];
 const statusVariant = (status: LeadStatus) =>
@@ -28,6 +33,7 @@ const temperatureVariant = (temperature: LeadTemperature) =>
 export function LeadPipelineView() {
   const { current } = useWorkspace();
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [jobs, setJobs] = useState<LeadJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
@@ -40,11 +46,15 @@ export function LeadPipelineView() {
   const [temperature, setTemperature] = useState<LeadTemperature>("warm");
 
   const load = useCallback(async () => {
-    if (!current) { setLeads([]); setLoading(false); return; }
+    if (!current) { setLeads([]); setJobs([]); setLoading(false); return; }
     setLoading(true);
     try {
-      const result = await apiFetch<{ leads: Lead[] }>(`/api/leads?workspace=${encodeURIComponent(current.id)}`);
+      const [result, jobResult] = await Promise.all([
+        apiFetch<{ leads: Lead[] }>(`/api/leads?workspace=${encodeURIComponent(current.id)}`),
+        apiFetch<{ jobs: LeadJob[] }>(`/api/lead-jobs?workspace=${encodeURIComponent(current.id)}`),
+      ]);
       setLeads(result.leads);
+      setJobs(jobResult.jobs);
     } catch (error) {
       toast.error((error as Error).message || "Couldn't load leads");
     } finally {
@@ -102,6 +112,24 @@ export function LeadPipelineView() {
         <Metric label="Qualified" value={String(qualifiedCount)} detail={`${bookedCount} booked so far`} />
       </div>
       <LeadWebhookCard />
+
+      <section className="overflow-hidden rounded-xl border bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
+          <div><h2 className="font-medium">Lead processing history</h2><p className="text-xs text-muted-foreground">Durable intake queue and latest job state</p></div>
+          <Badge variant={jobs.some((job) => job.status === "failed") ? "destructive" : "secondary"}>{jobs.filter((job) => job.status === "queued" || job.status === "processing").length} pending</Badge>
+        </div>
+        {jobs.length === 0 ? <p className="p-5 text-sm text-muted-foreground">No webhook jobs yet. Incoming events are recorded here once the webhook is configured.</p> : (
+          <div className="divide-y">
+            {jobs.slice(0, 8).map((job) => (
+              <div key={job.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                <div className="min-w-0"><p className="truncate text-sm font-medium">{job.lead_name}</p><p className="text-xs text-muted-foreground">{job.lead_source || "webhook"} · {new Date(job.created_at).toLocaleString()} · {job.attempt_count} attempts</p></div>
+                <Badge variant={job.status === "completed" ? "success" : job.status === "failed" ? "destructive" : job.status === "awaiting_review" ? "warning" : "secondary"}>{job.status.replace("_", " ")}</Badge>
+              </div>
+            ))}
+          </div>
+        )}
+        <p className="border-t bg-muted/20 px-4 py-3 text-xs text-muted-foreground">The durable queue is implemented; automatic qualification and retry scheduling still require the background worker and Agent37 credentials.</p>
+      </section>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
         <section className="min-w-0 space-y-3">
