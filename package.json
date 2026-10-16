@@ -9,7 +9,7 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "smoke": "node scripts/smoke.mjs",
-    "test:security": "node --test scripts/security.test.mjs scripts/lead-triage.test.mjs scripts/database-security.test.mjs scripts/http-body-limit.test.mjs scripts/workspace-bootstrap.test.mjs",
+    "test:security": "node --test scripts/security.test.mjs scripts/lead-triage.test.mjs scripts/database-security.test.mjs scripts/http-body-limit.test.mjs scripts/workspace-bootstrap.test.mjs scripts/smoke-safety.test.mjs",
     "dev:vinext": "vite dev --port 3001",
     "build:vinext": "vite build",
     "start:vinext": "vite preview",
