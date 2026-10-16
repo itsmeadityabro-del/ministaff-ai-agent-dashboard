@@ -78,8 +78,23 @@ export function apiError(message: string, status = 400, code = "error") {
 }
 
 export function handleError(e: unknown) {
-  if (e instanceof ApiError || e instanceof Agent37Error) {
-    return apiError(e.message, e.status, e.code);
+  if (e instanceof ApiError) {
+    // Database clients can include schema/table/constraint details in error.message. Keep the
+    // structured status and code for callers, but don't disclose internal SQL diagnostics.
+    const message = e.status >= 500 && e.code === "db_error"
+      ? "A database operation failed. Please retry."
+      : e.message;
+    return apiError(message, e.status, e.code);
+  }
+  if (e instanceof Agent37Error) {
+    // Preserve useful provider diagnostics while ensuring bearer/API credentials can never be
+    // reflected in a user-visible error payload.
+    const message = e.message
+      .replace(/sk_live_[A-Za-z0-9_-]+/g, "[redacted]")
+      .replace(/Bearer\\s+\\S+/gi, "Bearer [redacted]")
+      .replace(/((?:api[_ -]?key|token)\\s*[:=]\\s*)\\S+/gi, "$1[redacted]")
+      .slice(0, 400);
+    return apiError(message, e.status, e.code);
   }
   console.error("[api]", e);
   return apiError("Internal server error", 500, "internal_error");
