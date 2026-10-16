@@ -78,7 +78,7 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 
 
 ## DigitalPlat registration checkpoint — 2026-10-16
-- With the user's explicit request, used the connected Windows browser to navigate to DigitalPlat One > Domains > Register Domain. The live page shows 1 free domain slot available, 0 paid slots, and 0 plan slots; it requires policy acknowledgements before proceeding.
-- The dashboard notice says new registrations under .US.KG and .XX.KG are temporarily paused for accounts below Power; higher plans are unaffected. Do not assume either suffix is available to this account. Verify current suffix rules and name availability in the authenticated registration UI.
-- The page's displayed account profile label does not match the known ChatGPT profile. **Registration is on hold** until the user confirms this is the correct account they are authorized to manage and under which MiniStaff should own the domain.
-- No terms were accepted, no registration was submitted, no domain was purchased, and no DNS changes were made. Candidate `ministaff.dpdns.org` remains unverified and unregistered.
+- The user confirmed this is the DigitalPlat account to use for MiniStaff and confirmed they are authorized to manage it.
+- The live registration page showed 1 free domain slot, 0 paid slots, and 0 plan slots. It requires reading/acknowledging policies before submission. The dashboard notice says .US.KG and .XX.KG registrations are temporarily paused for accounts below Power.
+- The intended candidate remains `ministaff.dpdns.org`; name availability and permitted suffix must be checked in the authenticated UI. Official DigitalPlat guidance says to prepare an external DNS zone first and use the exact nameservers assigned by the DNS provider.
+- User requested completion of registration. No terms have been accepted, no registration submitted, no domain purchased, and no DNS changes made yet. Candidate remains unverified and unregistered.
