@@ -26,7 +26,7 @@ export async function readJson<T = Record<string, unknown>>(
     ? maxBytes
     : DEFAULT_JSON_BODY_LIMIT;
   const declaredLength = request.headers.get("content-length");
-  if (declaredLength && /^\\d+$/.test(declaredLength) && Number(declaredLength) > limit) {
+  if (declaredLength && /^\d+$/.test(declaredLength) && Number(declaredLength) > limit) {
     throw new ApiError(413, "payload_too_large", "Request body is too large");
   }
 
