@@ -1,52 +1,51 @@
-import { requireAdmin, requireMember, requireUser } from "@/lib/auth";
+import { requireMiniStaffAccount } from "@/lib/auth";
 import { ApiError, handleError, json } from "@/lib/http";
-import type { Invitation, WorkspaceMember } from "@/lib/types";
+import type { Role, WorkspaceMember } from "@/lib/types";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Ctx) {
   try {
     const { id } = await params;
-    const { db, user } = await requireUser();
-    const role = await requireMember(db, id, user.id);
-
-    const { data: members, error } = await db.rpc("get_workspace_members", { p_workspace: id });
-    if (error) throw new ApiError(500, "db_error", error.message);
-
-    let invitations: Invitation[] = [];
-    if (role === "admin") {
-      const { data: inv } = await db
-        .from("invitations")
-        .select("*")
-        .eq("workspace_id", id)
-        .order("created_at", { ascending: false });
-      invitations = (inv as Invitation[]) ?? [];
+    const { db, user, account } = await requireMiniStaffAccount();
+    if (!account.workspace_id || id !== account.workspace_id) {
+      throw new ApiError(404, "not_found", "Workspace not found");
     }
 
-    return json({ members: (members as WorkspaceMember[]) ?? [], invitations, role });
-  } catch (e) {
-    return handleError(e);
+    const { data, error } = await db
+      .from("memberships")
+      .select("workspace_id, user_id, role, created_at")
+      .eq("workspace_id", id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (error) throw new ApiError(500, "db_error", error.message);
+    if (!data) throw new ApiError(404, "not_found", "Membership not found");
+
+    const member: WorkspaceMember = {
+      user_id: user.id,
+      email: user.email ?? "",
+      role: data.role as Role,
+      created_at: data.created_at,
+    };
+    return json({ members: [member], invitations: [], role: data.role as Role });
+  } catch (error) {
+    return handleError(error);
   }
 }
 
-export async function POST(request: Request, { params }: Ctx) {
+export async function POST(_request: Request, { params }: Ctx) {
   try {
     const { id } = await params;
-    const { db, user } = await requireUser();
-    await requireAdmin(db, id, user.id);
-
-    const { data, error } = await db
-      .from("invitations")
-      .insert({ workspace_id: id, role: "admin", created_by: user.id })
-      .select("token")
-      .single();
-    if (error) throw new ApiError(500, "db_error", error.message);
-
-    const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || new URL(request.url).origin;
-    const url = `${origin}/invite/${data.token}`;
-
-    return json({ token: data.token, url }, 201);
-  } catch (e) {
-    return handleError(e);
+    const { account } = await requireMiniStaffAccount();
+    if (!account.workspace_id || id !== account.workspace_id) {
+      throw new ApiError(404, "not_found", "Workspace not found");
+    }
+    throw new ApiError(
+      403,
+      "team_invitations_disabled",
+      "MiniStaff accounts are linked to one verified purchaser. Team invitations are not enabled.",
+    );
+  } catch (error) {
+    return handleError(error);
   }
 }
