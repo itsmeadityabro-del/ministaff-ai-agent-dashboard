@@ -45,6 +45,9 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Apply compatible dependency security fixes
+        run: npm audit fix --package-lock-only --ignore-scripts --no-fund || true
+
       - name: Install repository dependencies
         run: npm ci --no-audit --no-fund
 
@@ -177,5 +180,19 @@ jobs:
             echo "No generated configuration changes to commit."
           else
             git commit -m "build: add validated Cloudflare Worker configuration"
+            git push origin HEAD:build/ministaff-from-scratch
+          fi
+
+      - name: Persist tested dependency lockfile fixes
+        if: success()
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          if git diff --cached --quiet; then
+            echo "The committed lockfile already matches the tested dependency graph."
+          else
+            git commit -m "security: refresh patched dependency lockfile"
             git push origin HEAD:build/ministaff-from-scratch
           fi

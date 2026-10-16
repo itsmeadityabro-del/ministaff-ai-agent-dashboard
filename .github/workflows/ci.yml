@@ -23,6 +23,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Apply compatible dependency security fixes
+        run: npm audit fix --package-lock-only --ignore-scripts --no-fund || true
       - name: Install dependencies
         run: npm ci
       - name: Type-check
