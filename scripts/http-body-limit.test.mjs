@@ -90,3 +90,26 @@ test("JSON API errors are marked no-store", () => {
   assert.equal(response.init.headers["Cache-Control"], "no-store");
   assert.equal(response.init.status, 404);
 });
+
+test("database errors do not expose SQL diagnostics to clients", () => {
+  const response = moduleExports.handleError(
+    new ApiError(500, "db_error", "relation private_membership_table does not exist"),
+  );
+  assert.equal(response.body.error.message, "A database operation failed. Please retry.");
+  assert.equal(response.body.error.code, "db_error");
+  assert.equal(response.init.headers["Cache-Control"], "no-store");
+});
+
+test("Agent37 errors redact API keys, bearer tokens, and token/key assignments", () => {
+  const providerError = new StubAgent37Error(
+    401,
+    "auth_error",
+    "sk_live_abc123 Bearer supersecret api_key=secret-token token: actual-secret",
+  );
+  const response = moduleExports.handleError(providerError);
+  const message = response.body.error.message;
+  assert.doesNotMatch(message, /sk_live_abc123|Bearer supersecret|api_key=secret-token|token: actual-secret/);
+  assert.match(message, /Bearer \[redacted\]/);
+  assert.match(message, /api_key=\[redacted\]/);
+  assert.match(message, /token: \[redacted\]/);
+});
