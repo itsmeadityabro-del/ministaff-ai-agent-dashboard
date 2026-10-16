@@ -78,7 +78,8 @@ Build MiniStaff AI into a customer-ready multi-tenant dashboard for AI agents, l
 
 
 ## DigitalPlat registration checkpoint — 2026-10-16
-- The user confirmed this is the DigitalPlat account to use for MiniStaff and confirmed they are authorized to manage it.
-- The live registration page showed 1 free domain slot, 0 paid slots, and 0 plan slots. It requires reading/acknowledging policies before submission. The dashboard notice says .US.KG and .XX.KG registrations are temporarily paused for accounts below Power.
-- The intended candidate remains `ministaff.dpdns.org`; name availability and permitted suffix must be checked in the authenticated UI. Official DigitalPlat guidance says to prepare an external DNS zone first and use the exact nameservers assigned by the DNS provider.
-- User requested completion of registration. No terms have been accepted, no registration submitted, no domain purchased, and no DNS changes made yet. Candidate remains unverified and unregistered.
+- User confirmed the DigitalPlat dashboard account is the intended account and asked to complete registration.
+- The live registration form showed 1 free domain slot, 0 paid slots, 0 plan slots, a suffix selector, a required policy-acknowledgement checkbox, and an explicit notice that `.qzz.io` consumes a paid slot. Earlier dashboard notice said new `.US.KG` and `.XX.KG` registrations are paused for accounts below Power.
+- DigitalPlat Domain Terms of Service (effective 2026-06-29) state that users must be legally able to enter a binding agreement; users under the age of majority may use the service only with the consent and supervision of a parent/legal guardian who agrees to be bound. Source: https://domain.digitalplat.org/terms-of-service/ (Eligibility section). Given the known user age range, **do not check the agreement box or attempt registration until the parent/legal guardian explicitly confirms consent and supervision**.
+- Candidate `ministaff.dpdns.org` is unverified and unregistered. No policies were acknowledged, no registration was submitted, no payment was made, and no Cloudflare zone or DNS changes were created.
+- On resumption, first confirm a parent/legal guardian has read/accepts the applicable terms and will supervise/own the account obligations; then check current suffix eligibility/name availability and prepare the exact Cloudflare DNS zone/nameservers before submitting registration. Do not buy a slot or proceed with any displayed charge.
