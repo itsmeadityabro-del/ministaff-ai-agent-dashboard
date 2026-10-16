@@ -42,7 +42,7 @@ export async function getRole(db: DB, workspaceId: string, userId: string): Prom
 // 404 (not 403) so we don't leak whether the workspace exists.
 export async function requireMember(db: DB, workspaceId: string, userId: string): Promise<Role> {
   const role = await getRole(db, workspaceId, userId);
-  if (!hasWorkspaceMembership(role)) throw new ApiError(404, "not_found", "Workspace not found");
+  if (!role || !hasWorkspaceMembership(role)) throw new ApiError(404, "not_found", "Workspace not found");
   return role;
 }
 
