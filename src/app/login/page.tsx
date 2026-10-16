@@ -26,6 +26,12 @@ export default function LoginPage() {
   const [sent, setSent] = useState<null | "signup" | "reset">(null);
   const [sentEmail, setSentEmail] = useState("");
 
+  // Homepage CTAs can open the create-account view directly.
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("mode");
+    if (requested === "signup" || requested === "reset") setMode(requested);
+  }, []);
+
   // /auth/callback bounces here with ?error=auth when a confirmation/recovery link
   // fails (expired, already used, or opened in a different browser). Surface it —
   // otherwise the user lands on a pristine form with no clue the link broke.

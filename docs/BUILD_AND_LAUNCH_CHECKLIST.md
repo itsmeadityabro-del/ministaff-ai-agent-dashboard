@@ -1,22 +1,22 @@
 # MiniStaff AI — Build, Login, Website & Release Checklist
 
-**Branch:** \`build/ministaff-from-scratch\`  
+**Branch:** `build/ministaff-from-scratch`  
 **Rule:** A box is checked only when the named verification has actually passed. Code existing in the repository is not proof that a live integration or production deployment works.
 
 ## Current evidence and blockers
 
 - [x] Created an isolated rebuild branch; the existing sales-desk branch and default branch remain untouched.
-- [x] Installed the locked dependencies in a cloud coding workspace with \`npm ci\`.
-- [x] TypeScript check passed on the branch baseline with \`npm run typecheck\`.
+- [x] Installed the locked dependencies in a cloud coding workspace with `npm ci`.
+- [x] TypeScript check passed on the branch baseline with `npm run typecheck`.
 - [x] Inspected the repository: it already has Supabase SSR authentication, Agent37 server-side integration, workspace roles, agents, leads, appointments, usage, members/settings screens, and lead webhook ingestion code. This rebuild should complete and verify those parts rather than silently discarding them.
 - [x] Confirmed a prior GitHub Actions CI run succeeded on the previous branch; that does **not** verify this rebuild branch.
 - [ ] Get a clean production build for this branch. A local cloud build attempt timed out, so this remains unverified pending CI.
 - [ ] Identify and verify the deployed MiniStaff website URL and hosting project.
-- [ ] Choose an active Supabase environment. The connected account returned two projects with status \`INACTIVE\`; neither has been modified.
+- [ ] Choose an active Supabase environment. The connected account returned two projects with status `INACTIVE`; neither has been modified.
 - [ ] Restore/choose the right Supabase project and verify its schema/migration state before applying any migration.
-- [ ] Re-authorize Vercel. The connected Vercel credential currently returns HTTP 403 \`invalidToken\`.
-- [ ] Configure a dedicated deployment target. Do **not** deploy to or overwrite the existing Cloudflare Worker \`ministaff-forms\`.
-- [ ] Add \`AGENT37_API_KEY\` as a **server-side secret** and verify Agent37 wallet status. The key must never be pasted into chat, committed to Git, or exposed in client code.
+- [ ] Re-authorize Vercel. The connected Vercel credential currently returns HTTP 403 `invalidToken`.
+- [ ] Configure a dedicated deployment target. Do **not** deploy to or overwrite the existing Cloudflare Worker `ministaff-forms`.
+- [ ] Add `AGENT37_API_KEY` as a **server-side secret** and verify Agent37 wallet status. The key must never be pasted into chat, committed to Git, or exposed in client code.
 - [ ] Configure public site URL, auth redirect allow-list, email provider/templates, and verified sender for the selected environment.
 
 ## 1. Product and website
@@ -33,7 +33,7 @@
 ## 2. Login, signup, email verification & recovery
 
 - [ ] Configure Supabase Auth with email verification required for newly created accounts in the chosen environment.
-- [ ] Configure the exact deployed callback URL \`/auth/callback\`, site URL, localhost development URL, and allowed redirects.
+- [ ] Configure the exact deployed callback URL `/auth/callback`, site URL, localhost development URL, and allowed redirects.
 - [ ] Set up email delivery, sender identity, confirmation template, password-reset template, and rate limits.
 - [ ] Sign up with a new email; verify the expected check-your-email state and that an unverified user cannot access protected workspace data.
 - [ ] Open a valid confirmation link; verify the session is established and the user reaches the intended in-app destination.
@@ -118,7 +118,7 @@
 - [x] Existing CI workflow runs dependency installation, TypeScript typecheck, and Next.js production build.
 - [ ] Ensure this rebuild branch runs the same workflow on push.
 - [ ] Add automated tests for redirect safety, auth callback paths, webhook auth/idempotency, permission checks, quota enforcement, and queue retry transitions.
-- [ ] Run \`npm ci\`, \`npm run typecheck\`, \`npm run build\`, and non-billable smoke tests on the final candidate commit.
+- [ ] Run `npm ci`, `npm run typecheck`, `npm run build`, and non-billable smoke tests on the final candidate commit.
 - [ ] Run browser E2E against the preview deployment for signup → email confirmation → login → create workspace → create lead → enqueue/process job → appointment → usage.
 - [ ] Perform negative/unauthorized tests, mobile/accessibility pass, dependency/security scan, and secrets scan.
 - [ ] Record commit SHA, successful CI run, deployment URL, database migration version, and test results here.

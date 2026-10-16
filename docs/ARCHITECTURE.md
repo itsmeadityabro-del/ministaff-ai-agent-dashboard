@@ -8,8 +8,8 @@ MiniStaff is the customer-facing workspace and operating layer. Agent37 hosts th
 
 - **Web app:** Next.js App Router, TypeScript, React, Tailwind CSS.
 - **Identity:** Supabase Auth via the SSR client and cookie-based sessions. Email confirmation depends on the selected Supabase project's Auth settings and allowed URLs.
-- **Authorization:** server helpers in \`src/lib/auth.ts\` derive the signed-in identity from the verified session and check workspace membership/role before using the privileged service-role client. Because the service-role client bypasses RLS, those membership checks are security-critical.
-- **Agent plane:** \`src/lib/agent37.ts\` is a server-only wrapper for Agent37's control/data plane. The \`AGENT37_API_KEY\` must remain server-only.
+- **Authorization:** server helpers in `src/lib/auth.ts` derive the signed-in identity from the verified session and check workspace membership/role before using the privileged service-role client. Because the service-role client bypasses RLS, those membership checks are security-critical.
+- **Agent plane:** `src/lib/agent37.ts` is a server-only wrapper for Agent37's control/data plane. The `AGENT37_API_KEY` must remain server-only.
 - **Sales desk:** lead CRUD, inbound webhook credentials, lead intake, queue history, appointment screens, and usage views exist in the codebase; actual production connectivity and the complete job-execution worker still need verification.
 - **CI:** GitHub Actions runs dependency installation, TypeScript type checking, and Next.js production build.
 
@@ -33,7 +33,7 @@ MiniStaff is the customer-facing workspace and operating layer. Agent37 hosts th
 - Every external action must have an explicit policy for approval, cancellation, timeout, retry, and duplicate delivery.
 - UI usage counters are informational only; quota enforcement must happen server-side with concurrency-safe reservation/check logic.
 - Treat provider responses, imported lead text, agent output, and webhooks as untrusted data, never as executable instructions.
-- Preserve unrelated infrastructure: the existing \`ministaff-forms\` Cloudflare Worker is out of scope for dashboard deployment.
+- Preserve unrelated infrastructure: the existing `ministaff-forms` Cloudflare Worker is out of scope for dashboard deployment.
 
 ## Deployment readiness
 

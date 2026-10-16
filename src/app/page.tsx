@@ -104,7 +104,7 @@ export default function Home() {
         </nav>
         <div className="flex items-center gap-2">
           <Link href="/login" className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-white hover:text-slate-950 sm:px-4">Sign in</Link>
-          <Link href="/login" className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-3.5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-slate-950/10 transition hover:bg-indigo-700 sm:px-4">
+          <Link href="/login?mode=signup" className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-3.5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-slate-950/10 transition hover:bg-indigo-700 sm:px-4">
             Get started <ArrowRight aria-hidden="true" className="h-4 w-4" />
           </Link>
         </div>
@@ -123,7 +123,7 @@ export default function Home() {
             Manage your agent fleet, collect leads, keep appointments moving, and understand usage — without losing the details between tools.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link href="/login" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-indigo-600/20 transition hover:bg-indigo-700">
+            <Link href="/login?mode=signup" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-indigo-600/20 transition hover:bg-indigo-700">
               Create your workspace <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
             <a href="#platform" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/80 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-white">
@@ -201,7 +201,7 @@ export default function Home() {
               <p className="text-xs font-bold tracking-[0.18em] text-indigo-700">HOW IT WORKS</p>
               <h2 className="mt-4 text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">Designed for work you can follow.</h2>
               <p className="mt-4 leading-7 text-slate-600">A useful automation system does more than run. It shows what happened, what is waiting, and where a person needs to step in.</p>
-              <Link href="/login" className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-indigo-700 transition hover:text-indigo-900">Open MiniStaff AI <ArrowRight className="h-4 w-4" /></Link>
+              <Link href="/login?mode=signup" className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-indigo-700 transition hover:text-indigo-900">Open MiniStaff AI <ArrowRight className="h-4 w-4" /></Link>
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
               {steps.map(([number, title, description]) => (
@@ -224,7 +224,7 @@ export default function Home() {
             <p className="mt-4 leading-7 text-slate-300">MiniStaff is being built around workspace boundaries, server-side credentials, durable intake, and visible status. Each deployment still needs its own security, provider, email, and quota checks before launch.</p>
           </div>
           <div className="flex shrink-0 flex-col gap-3 sm:flex-row md:flex-col">
-            <Link href="/login" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-100">Get started <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/login?mode=signup" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-100">Get started <ArrowRight className="h-4 w-4" /></Link>
             <a href="#platform" className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/20 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">Review features</a>
           </div>
         </div>
@@ -234,7 +234,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 sm:px-8 md:flex-row md:items-center md:justify-between lg:px-12">
           <Link href="/" className="flex items-center gap-3" aria-label="MiniStaff AI home"><BrandMark /><span className="text-sm font-bold">MiniStaff AI</span></Link>
           <p className="text-xs leading-5 text-slate-500">AI operations for customer-focused teams. Verify your deployment settings before connecting live customer data.</p>
-          <div className="flex gap-5 text-sm font-medium text-slate-600"><Link href="/login" className="hover:text-indigo-700">Sign in</Link><Link href="/login" className="hover:text-indigo-700">Create account</Link></div>
+          <div className="flex gap-5 text-sm font-medium text-slate-600"><Link href="/login" className="hover:text-indigo-700">Sign in</Link><Link href="/login?mode=signup" className="hover:text-indigo-700">Create account</Link></div>
         </div>
       </footer>
     </main>
